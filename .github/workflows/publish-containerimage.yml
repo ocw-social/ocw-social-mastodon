@@ -3,7 +3,7 @@ name: Publish / Mastodon container images
 on:
   # Run every Monday at 12:00 EDT (16:00 UTC)
   schedule:
-    cron: "0 16 * * MON"
+    - cron: "0 16 * * MON"
   # Allow manual trigger 
   workflow_dispatch: 
 
