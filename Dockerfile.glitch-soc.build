@@ -82,6 +82,17 @@ RUN git clone https://github.com/rbenv/ruby-build.git /home/mastodon/.rbenv/plug
 WORKDIR /mastodon
 RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 
+WORKDIR /tmp
+
+# Clone Bird UI Theme Admins and copy the files to the /mastodon directory.
+RUN git clone https://github.com/mstdn/Bird-UI-Theme-Admins.git ; \
+    cp ./Bird-UI-Theme-Admins/mastodon/app/javascript/styles/elephant.scss /mastodon/app/javascript/styles/ ; \
+    cp -r ./Bird-UI-Theme-Admins/mastodon/app/javascript/styles/elephant/ /mastodon/app/javascript/styles/ ; \
+    cp ./Bird-UI-Theme-Admins/mastodon/config/themes.yml /mastodon/config/themes.yml ; \
+    rm -rf /tmp/Bird-UI-Theme-Admins
+
+WORKDIR /mastodon
+
 # Install the required gems and JavaScript packages.
 RUN bundle config deployment "true" ; \
     bundle config without "development test" ; \
