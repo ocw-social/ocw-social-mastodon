@@ -88,10 +88,13 @@ WORKDIR /tmp
 RUN git clone https://github.com/mstdn/Bird-UI-Theme-Admins.git ; \
     cp ./Bird-UI-Theme-Admins/mastodon/app/javascript/styles/elephant.scss /mastodon/app/javascript/styles/ ; \
     cp -r ./Bird-UI-Theme-Admins/mastodon/app/javascript/styles/elephant/ /mastodon/app/javascript/styles/ ; \
-    cp ./Bird-UI-Theme-Admins/mastodon/config/themes.yml /mastodon/config/themes.yml ; \
     rm -rf /tmp/Bird-UI-Theme-Admins
 
 WORKDIR /mastodon
+
+# Copy Bird UI theme files to /mastodon/app/javascript/skins/vanilla.
+#RUN mkdir /mastodon/app/javascript/skins/vanilla/elephant
+COPY ./themes/elephant/ /mastodon/app/javascript/skins/vanilla/elephant/
 
 # Install the required gems and JavaScript packages.
 RUN bundle config deployment "true" ; \
