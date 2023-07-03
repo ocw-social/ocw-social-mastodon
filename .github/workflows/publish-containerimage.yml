@@ -14,7 +14,7 @@ on:
       do_not_rebuild_mastodon:
         type: boolean
         description: Do not rebuild the Mastodon container image.
-        default: false
+        default: true
 
 permissions:
   actions: write
