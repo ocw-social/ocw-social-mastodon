@@ -48,7 +48,7 @@ jobs:
 
         - name: Generate build seed
           id: generate_build_seed
-          if: ${{ steps.cache_build_seed.outputs.cache-hit != true || inputs.do_not_rebuild_mastodon == false }}
+          if: ${{ steps.cache_build_seed.outputs.cache-hit != true || github.event_name == 'schedule' || inputs.do_not_rebuild_mastodon == false }}
           shell: pwsh
           run: |
             $buildSeed = (New-Guid).Guid
