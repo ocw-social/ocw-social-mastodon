@@ -18,7 +18,7 @@ jobs:
       strategy:
         matrix: 
           type: [ "glitch-soc" ]
-          
+
       steps:
         - name: 'Checkout: Latest commit'
           uses: actions/checkout@v3
@@ -42,7 +42,7 @@ jobs:
 
             $cacheList = gh actions-cache list --branch "main"
             $cacheKeys = ($cacheList | Select-String -Pattern "^(?'cacheKey'.+?)\t.+$").Matches | ForEach-Object { $PSItem.Groups["cacheKey"].Value }
-            $cacheKeys | ForEach-Object { gh actions-cache delete "$($PSItem)" "main" --confirm }
+            $cacheKeys | ForEach-Object { gh actions-cache delete "$($PSItem)" --confirm }
 
 
         - name: Set up Docker Buildx
