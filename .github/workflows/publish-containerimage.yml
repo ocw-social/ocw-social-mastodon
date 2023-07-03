@@ -44,3 +44,5 @@ jobs:
             tags: smallsonlinemstdncontainers.azurecr.io/ocwsocial-${{ matrix.type }}:latest,smallsonlinemstdncontainers.azurecr.io/ocwsocial-${{ matrix.type }}:${{ github.ref_name }}_${{ env.current_datetime_ticks }}
             file: ./Dockerfile.${{ matrix.type }}.build
             context: ./
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
