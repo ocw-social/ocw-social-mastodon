@@ -87,15 +87,11 @@ ARG BUILD_SEED
 WORKDIR /mastodon
 RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 
-WORKDIR /tmp
-
-RUN git clone https://github.com/ronilaukkarinen/mastodon-bird-ui.git ; \
+RUN git clone --branch "ocw-social-mods" https://github.com/ocw-social/mastodon-bird-ui.git /tmp/mastodon-bird-ui ; \
     mkdir /mastodon/app/javascript/styles/elephant ; \
-    cp ./mastodon-bird-ui/layout-multiple-columns.css /mastodon/app/javascript/styles/elephant/layout-multiple-columns.scss ; \
-    cp ./mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss ; \
+    cp /tmp/mastodon-bird-ui/layout-multiple-columns.css /mastodon/app/javascript/styles/elephant/layout-multiple-columns.scss ; \
+    cp /tmp/mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss ; \
     rm -rf /tmp/mastodon-bird-ui
-
-WORKDIR /mastodon
 
 # Copy Bird UI theme files to /mastodon/app/javascript/styles.
 COPY ./themes/styles/elephant.scss /mastodon/app/javascript/styles/elephant.scss
