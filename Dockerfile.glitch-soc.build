@@ -1,6 +1,8 @@
 FROM docker.io/library/ubuntu:22.04 AS os-base
 SHELL ["/bin/bash", "-lc"]
 
+ARG OS_BUILD_SEED
+
 # Set the frontend to noninteractive to prevent tzdata from hanging during install
 # and set the version of Ruby to install.
 ENV DEBIAN_FRONTEND=noninteractive \
