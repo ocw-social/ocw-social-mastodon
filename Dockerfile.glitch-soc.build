@@ -1,4 +1,4 @@
-FROM docker.io/library/ubuntu:22.04
+FROM docker.io/library/ubuntu:22.04 AS os-base
 SHELL ["/bin/bash", "-lc"]
 
 # Set the frontend to noninteractive to prevent tzdata from hanging during install
@@ -77,6 +77,9 @@ RUN git clone https://github.com/rbenv/ruby-build.git /home/mastodon/.rbenv/plug
     RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install ${RUBY_INSTALL_VERSION} ; \
     rbenv global ${RUBY_INSTALL_VERSION} ; \
     gem install bundler --no-document
+
+FROM os-base AS mastodon-app
+ARG BUILD_SEED
 
 # Set the working directory to '/mastodon' and clone the Mastodon Glitch repository.
 WORKDIR /mastodon
