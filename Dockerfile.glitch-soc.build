@@ -84,17 +84,23 @@ RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 
 WORKDIR /tmp
 
-# Clone Bird UI Theme Admins and copy the files to the /mastodon directory.
-RUN git clone https://github.com/mstdn/Bird-UI-Theme-Admins.git ; \
-    cp ./Bird-UI-Theme-Admins/mastodon/app/javascript/styles/elephant.scss /mastodon/app/javascript/styles/ ; \
-    cp -r ./Bird-UI-Theme-Admins/mastodon/app/javascript/styles/elephant/ /mastodon/app/javascript/styles/ ; \
-    rm -rf /tmp/Bird-UI-Theme-Admins
+RUN git clone https://github.com/ronilaukkarinen/mastodon-bird-ui.git ; \
+    mkdir /mastodon/app/javascript/styles/elephant ; \
+    cp ./mastodon-bird-ui/layout-multiple-columns.css /mastodon/app/javascript/styles/elephant/layout-multiple-columns.scss ; \
+    cp ./mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss ; \
+    rm -rf /tmp/mastodon-bird-ui
 
 WORKDIR /mastodon
 
+# Copy Bird UI theme files to /mastodon/app/javascript/styles.
+COPY ./themes/styles/elephant.scss /mastodon/app/javascript/styles/elephant.scss
+COPY ./themes/styles/elephant-light.scss /mastodon/app/javascript/styles/elephant-light.scss
+COPY ./themes/styles/elephant-contrast.scss /mastodon/app/javascript/styles/elephant-contrast.scss
+
 # Copy Bird UI theme files to /mastodon/app/javascript/skins/vanilla.
-#RUN mkdir /mastodon/app/javascript/skins/vanilla/elephant
-COPY ./themes/elephant/ /mastodon/app/javascript/skins/vanilla/elephant/
+COPY ./themes/vanilla/elephant/ /mastodon/app/javascript/skins/vanilla/elephant/
+COPY ./themes/vanilla/elephant-light/ /mastodon/app/javascript/skins/vanilla/elephant-light/
+COPY ./themes/vanilla/elephant-contrast/ /mastodon/app/javascript/skins/vanilla/elephant-contrast/
 
 # Install the required gems and JavaScript packages.
 RUN bundle config deployment "true" ; \
