@@ -18,7 +18,7 @@ jobs:
       strategy:
         matrix: 
           type: [ "glitch-soc" ]
-
+          
       steps:
         - name: 'Checkout: Latest commit'
           uses: actions/checkout@v3
@@ -35,6 +35,8 @@ jobs:
         - name: Clear layer cache
           if: ${{ inputs.delete_layer_cache == true }}
           shell: pwsh
+          env:
+            GH_TOKEN: ${{ github.token }}
           run: |
             gh extension install actions/gh-actions-cache
 
