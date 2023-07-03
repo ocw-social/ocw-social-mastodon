@@ -43,6 +43,18 @@ jobs:
             $currentDateTimeTicks = [System.DateTimeOffset]::Now.UtcTicks
             "current_datetime_ticks=$($currentDateTimeTicks)" >> $env:GITHUB_ENV
 
+        - name: Clear layer cache
+          if: ${{ inputs.delete_layer_cache == true }}
+          shell: pwsh
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            gh extension install actions/gh-actions-cache
+
+            $cacheList = gh actions-cache list --branch "main"
+            $cacheKeys = ($cacheList | Select-String -Pattern "^(?'cacheKey'.+?)\t.+$").Matches | ForEach-Object { $PSItem.Groups["cacheKey"].Value }
+            $cacheKeys | ForEach-Object { gh actions-cache delete "$($PSItem)" --confirm }
+
         - name: Cache OS build seed
           id: cache_os_build_seed
           uses: actions/cache@v3
@@ -81,18 +93,6 @@ jobs:
 
             $osBuildSeed = Get-Content -Path "./.os-build-seed" -Raw
             "os_build_seed=$($osBuildSeed)" >> $env:GITHUB_ENV
-
-        - name: Clear layer cache
-          if: ${{ inputs.delete_layer_cache == true }}
-          shell: pwsh
-          env:
-            GH_TOKEN: ${{ github.token }}
-          run: |
-            gh extension install actions/gh-actions-cache
-
-            $cacheList = gh actions-cache list --branch "main"
-            $cacheKeys = ($cacheList | Select-String -Pattern "^(?'cacheKey'.+?)\t.+$").Matches | ForEach-Object { $PSItem.Groups["cacheKey"].Value }
-            $cacheKeys | ForEach-Object { gh actions-cache delete "$($PSItem)" --confirm }
 
         - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v2
