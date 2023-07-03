@@ -59,7 +59,7 @@ jobs:
 
         - name: Generate OS build seed
           id: generate_os_build_seed
-          if: ${{ steps.cache_os_build_seed.outputs.cache-hit != 'true' || github.event_name == 'schedule' || inputs.do_not_rebuild_os == 'false' }}
+          if: ${{ steps.cache_os_build_seed.outputs.cache-hit != 'true' || github.event_name == 'schedule' || inputs.do_not_rebuild_os == false }}
           shell: pwsh
           run: |
             $buildSeed = (New-Guid).Guid
@@ -67,7 +67,7 @@ jobs:
 
         - name: Generate Mastodon build seed
           id: generate_build_seed
-          if: ${{ steps.cache_mastodon_build_seed.outputs.cache-hit != 'true' || github.event_name == 'schedule' || inputs.do_not_rebuild_os == 'false' || inputs.do_not_rebuild_mastodon == 'false' }}
+          if: ${{ steps.cache_mastodon_build_seed.outputs.cache-hit != 'true' || github.event_name == 'schedule' || inputs.do_not_rebuild_os == false || inputs.do_not_rebuild_mastodon == false }}
           shell: pwsh
           run: |
             $buildSeed = (New-Guid).Guid
@@ -83,7 +83,7 @@ jobs:
             "os_build_seed=$($osBuildSeed)" >> $env:GITHUB_ENV
 
         - name: Clear layer cache
-          if: ${{ inputs.delete_layer_cache == 'true' }}
+          if: ${{ inputs.delete_layer_cache == true }}
           shell: pwsh
           env:
             GH_TOKEN: ${{ github.token }}
