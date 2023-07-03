@@ -44,7 +44,7 @@ jobs:
           uses: actions/cache@v3
           with:
             path: ./.build-seed
-            key: ${{ runner.os }}-build-seed-${{ hashFiles('./.build-seed') }}
+            key: ${{ runner.os }}-build-seed
 
         - name: Generate build seed
           id: generate_build_seed
