@@ -1,4 +1,8 @@
 FROM docker.io/library/ubuntu:22.04 AS os-base
+
+LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social
+LABEL org.opencontainers.image.description="Container image for the OCW Social Mastodon server."
+
 SHELL ["/bin/bash", "-lc"]
 
 ARG OS_BUILD_SEED
