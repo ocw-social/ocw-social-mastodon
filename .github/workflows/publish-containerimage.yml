@@ -119,7 +119,7 @@ jobs:
           uses: docker/login-action@v2
           with:
             registry: ghcr.io
-            username: ${{ github.actor }}
+            username: ${{ github.repository_owner }}
             password: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Set metadata
@@ -128,7 +128,7 @@ jobs:
           with:
             images: |
               smallsonlinemstdncontainers.azurecr.io/ocwsocial-glitch-soc
-              ghcr.io/${{ github.actor }}/ocw-social-mastodon
+              ghcr.io/${{ github.repository_owner }}/ocw-social-mastodon
             tags: |
               type=raw,value=latest,enable={{is_default_branch}}
               type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
