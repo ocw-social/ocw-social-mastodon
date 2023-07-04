@@ -27,9 +27,6 @@ permissions:
 jobs:
     build:
       runs-on: ubuntu-latest
-      strategy:
-        matrix: 
-          type: [ "glitch-soc" ]
 
       steps:
         - name: 'Checkout: Latest commit'
@@ -130,8 +127,8 @@ jobs:
           uses: docker/metadata-action@v4
           with:
             images: |
-              smallsonlinemstdncontainers.azurecr.io/ocwsocial-${{ matrix.type }}
-              ghcr.io/${{ github.actor }}/ocwsocial-${{ matrix.type }}
+              smallsonlinemstdncontainers.azurecr.io/ocwsocial-glitch-soc
+              ghcr.io/${{ github.actor }}/ocw-social-mastodon
             tags: |
               type=raw,value=latest,enable={{is_default_branch}}
               type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
@@ -142,7 +139,7 @@ jobs:
           uses: docker/build-push-action@v4
           with:
             context: ./
-            file: ./Dockerfile.${{ matrix.type }}.build
+            file: ./Dockerfile
             push: true
             tags: ${{ steps.meta.outputs.tags }}
             build-args: |
