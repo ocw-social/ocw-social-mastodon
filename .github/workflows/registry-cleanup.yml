@@ -24,6 +24,6 @@ jobs:
               uses: actions/delete-package-versions@v4
               with:
                 package-type: 'container'
-                package-name: 'ocwsocial-glitch-soc'
+                package-name: 'ocw-social-mastodon'
                 min-versions-to-keep: 5
             
