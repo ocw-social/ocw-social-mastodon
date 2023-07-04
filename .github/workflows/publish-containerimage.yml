@@ -22,6 +22,7 @@ on:
 
 permissions:
   actions: write
+  packages: write
 
 jobs:
     build:
@@ -43,6 +44,7 @@ jobs:
             $currentDateTimeTicks = [System.DateTimeOffset]::Now.UtcTicks
             "current_datetime_ticks=$($currentDateTimeTicks)" >> $env:GITHUB_ENV
 
+        # Clear the layer cache if the 'delete_layer_cache' input is true.
         - name: Clear layer cache
           if: ${{ inputs.delete_layer_cache == true }}
           shell: pwsh
@@ -55,6 +57,7 @@ jobs:
             $cacheKeys = ($cacheList | Select-String -Pattern "^(?'cacheKey'.+?)\t.+$").Matches | ForEach-Object { $PSItem.Groups["cacheKey"].Value }
             $cacheKeys | ForEach-Object { gh actions-cache delete "$($PSItem)" --confirm }
 
+        # Cache the current seed for building the OS.
         - name: Cache OS build seed
           id: cache_os_build_seed
           uses: actions/cache@v3
@@ -62,6 +65,7 @@ jobs:
             path: ./.os-build-seed
             key: ${{ runner.os }}-os-build-seed
 
+        # Cache the current seed for building Mastodon.
         - name: Cache Mastodon build seed
           id: cache_mastodon_build_seed
           uses: actions/cache@v3
@@ -69,6 +73,10 @@ jobs:
             path: ./.build-seed
             key: ${{ runner.os }}-build-seed
 
+        # Generate a new seed for building the OS if:
+        # - No seed was previously cached
+        # - The workflow is triggered by a schedule
+        # - The workflow is triggered by a manual trigger and the 'do_not_rebuild_os' input is false
         - name: Generate OS build seed
           id: generate_os_build_seed
           if: ${{ steps.cache_os_build_seed.outputs.cache-hit != 'true' || github.event_name == 'schedule' || inputs.do_not_rebuild_os == false }}
@@ -76,7 +84,12 @@ jobs:
           run: |
             $buildSeed = (New-Guid).Guid
             $buildSeed > ./.os-build-seed
-
+        
+        # Generate a new seed for building Mastodon if:
+        # - No seed was previously cached
+        # - The workflow is triggered by a schedule
+        # - The workflow is triggered by a manual trigger and the 'do_not_rebuild_os' input is false
+        # - The workflow is triggered by a manual trigger and the 'do_not_rebuild_mastodon' input is false
         - name: Generate Mastodon build seed
           id: generate_build_seed
           if: ${{ steps.cache_mastodon_build_seed.outputs.cache-hit != 'true' || github.event_name == 'schedule' || inputs.do_not_rebuild_os == false || inputs.do_not_rebuild_mastodon == false }}
@@ -85,6 +98,7 @@ jobs:
             $buildSeed = (New-Guid).Guid
             $buildSeed > ./.build-seed
 
+        # Set the build seed environment variables.
         - name: Set build seed environment variables
           shell: pwsh
           run: |
@@ -97,22 +111,43 @@ jobs:
         - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v2
 
-        - name: Login to container registry
+        - name: Log into Azure container registry
           uses: docker/login-action@v2
           with:
             registry: smallsonlinemstdncontainers.azurecr.io
             username: ${{ secrets.REGISTRY_USERNAME }}
             password: ${{ secrets.REGISTRY_PASSWORD }}
 
+        - name: Log into GitHub container registry
+          uses: docker/login-action@v2
+          with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Set metadata
+          id: meta
+          uses: docker/metadata-action@v4
+          with:
+            images: |
+              smallsonlinemstdncontainers.azurecr.io/ocwsocial-${{ matrix.type }}
+              ghcr.io/${{ github.actor }}/ocwsocial-${{ matrix.type }}
+            tags: |
+              type=raw,value=latest,enable={{is_default_branch}}
+              type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
+              type=ref,event=branch
+              type=sha
+
         - name: Build and push container image to registry
           uses: docker/build-push-action@v4
           with:
-            push: true
-            tags: smallsonlinemstdncontainers.azurecr.io/ocwsocial-${{ matrix.type }}:latest,smallsonlinemstdncontainers.azurecr.io/ocwsocial-${{ matrix.type }}:${{ github.ref_name }}_${{ env.current_datetime_ticks }}
-            file: ./Dockerfile.${{ matrix.type }}.build
             context: ./
+            file: ./Dockerfile.${{ matrix.type }}.build
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
             build-args: |
               OS_BUILD_SEED=${{ env.os_build_seed }}
               BUILD_SEED=${{ env.build_seed }}
+            platforms: linux/amd64
             cache-from: type=gha
             cache-to: type=gha,mode=max
