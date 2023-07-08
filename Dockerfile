@@ -1,8 +1,5 @@
 FROM docker.io/library/ubuntu:22.04 AS os-base
 
-LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social
-LABEL org.opencontainers.image.description="Container image for the OCW Social Mastodon server."
-
 SHELL ["/bin/bash", "-lc"]
 
 ARG OS_BUILD_SEED
@@ -134,6 +131,9 @@ ENV RAILS_ENV="production" \
 # Precompile the assets.
 RUN OTP_SECRET=precompile_placeholder SECRET_KEY_BASE=precompile_placeholder bundle exec rails assets:precompile && \
     yarn cache clean
+
+LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social
+LABEL org.opencontainers.image.description="Container image for the OCW Social Mastodon server."
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 EXPOSE 3000 4000
