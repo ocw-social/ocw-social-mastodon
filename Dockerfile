@@ -91,11 +91,23 @@ ARG BUILD_SEED
 WORKDIR /mastodon
 RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 
-RUN git clone --branch "ocw-social-mods" https://github.com/ocw-social/mastodon-bird-ui.git /tmp/mastodon-bird-ui ; \
-    mkdir /mastodon/app/javascript/styles/elephant ; \
+RUN git clone --branch "mastodon-nightly" https://github.com/ronilaukkarinen/mastodon-bird-ui.git /tmp/mastodon-bird-ui
+
+COPY --chown=mastodon:mastodon ./patches/mastodon-bird-ui/ /tmp/mastodon-bird-ui-patches/
+
+WORKDIR /tmp/mastodon-bird-ui
+
+RUN git config user.name "ContainerBuild" ; \
+    git config user.email "build@localhost" ; \
+    git am /tmp/mastodon-bird-ui-patches/0001-Add-modifications-for-OCW.Social.patch
+
+WORKDIR /mastodon
+
+RUN mkdir /mastodon/app/javascript/styles/elephant ; \
     cp /tmp/mastodon-bird-ui/layout-multiple-columns.css /mastodon/app/javascript/styles/elephant/layout-multiple-columns.scss ; \
     cp /tmp/mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss ; \
-    rm -rf /tmp/mastodon-bird-ui
+    rm -rf /tmp/mastodon-bird-ui ; \
+    rm -rf /tmp/mastodon-bird-ui-patches
 
 # Copy Bird UI theme files to /mastodon/app/javascript/styles.
 COPY ./themes/styles/elephant.scss /mastodon/app/javascript/styles/elephant.scss

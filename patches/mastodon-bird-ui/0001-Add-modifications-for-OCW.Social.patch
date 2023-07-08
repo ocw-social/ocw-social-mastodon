@@ -1,0 +1,39 @@
+From 2fc354faf266ca48cc16f8f288ded8eb4b80ad96 Mon Sep 17 00:00:00 2001
+From: Timothy Small <smalls.online@icloud.com>
+Date: Fri, 7 Jul 2023 19:21:08 -0400
+Subject: [PATCH] Add modifications for OCW.Social
+
+---
+ layout-single-column.css | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/layout-single-column.css b/layout-single-column.css
+index 36b4394..8b5a011 100644
+--- a/layout-single-column.css
++++ b/layout-single-column.css
+@@ -4177,3 +4177,22 @@ div[tabindex="-1"] + div[tabindex="-1"] > .status__wrapper > .status-reply.statu
+  * Star animation micro-interactions end
+  * -------------------------------------
+  */
++
++/*
++* Custom modifications for OCW Social
++*
++*/
++
++/* Add background color for the compose form */
++/* stylelint-disable-next-line no-duplicate-selectors */
++.layout-single-column .compose-form .compose-form__autosuggest-wrapper,
++.layout-single-column .compose-form .compose-form__buttons-wrapper {
++  background-color: var(--color-mud);
++  border-color: var(--color-mud);
++  padding-top: 0;
++}
++
++/* Fixes to bottom row when there's a background */
++.layout-single-column .compose-form .compose-form__buttons-wrapper {
++  padding-bottom: calc(var(--gap-default) / 2);
++}
+-- 
+2.41.0.windows.1
+
