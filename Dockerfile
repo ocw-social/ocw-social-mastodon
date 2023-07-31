@@ -88,7 +88,7 @@ ARG BUILD_SEED
 WORKDIR /mastodon
 RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 
-RUN git clone --branch "mastodon-nightly" https://github.com/ronilaukkarinen/mastodon-bird-ui.git /tmp/mastodon-bird-ui
+RUN git clone --branch "main" https://github.com/ronilaukkarinen/mastodon-bird-ui.git /tmp/mastodon-bird-ui
 
 COPY --chown=mastodon:mastodon ./patches/mastodon-bird-ui/ /tmp/mastodon-bird-ui-patches/
 
