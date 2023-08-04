@@ -91,6 +91,7 @@ RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 RUN git clone --branch "main" https://github.com/ronilaukkarinen/mastodon-bird-ui.git /tmp/mastodon-bird-ui
 
 COPY --chown=mastodon:mastodon ./patches/mastodon-bird-ui/ /tmp/mastodon-bird-ui-patches/
+COPY --chown=mastodon:mastodon ./patches/glitch-soc/ /tmp/glitch-soc-patches/
 
 WORKDIR /tmp/mastodon-bird-ui
 
@@ -105,6 +106,9 @@ RUN mkdir /mastodon/app/javascript/styles/elephant ; \
     cp /tmp/mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss ; \
     rm -rf /tmp/mastodon-bird-ui ; \
     rm -rf /tmp/mastodon-bird-ui-patches
+
+RUN git am /tmp/glitch-soc-patches/0001-Add-OCW-flavour-1.patch ; \
+    rm -rf /tmp/glitch-soc-patches
 
 # Copy Bird UI theme files to /mastodon/app/javascript/styles.
 COPY ./themes/styles/elephant.scss /mastodon/app/javascript/styles/elephant.scss
