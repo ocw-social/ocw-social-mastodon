@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build image locally",
+            "detail": "Build the OCW.Social container image locally.",
+            "icon": {
+                "id": "package",
+                "color": "terminal.ansiCyan"
+            },
+            "type": "process",
+            "command": "docker",
+            "args": [
+                "buildx",
+                "build",
+                "--tag \"ocwsocial-local:latest\"",
+                "--file \"${workspaceFolder}/Dockerfile\"",
+                "."
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        },
+        {
+            "label": "Build image locally (No cache)",
+            "detail": "Build the OCW.Social container image locally and don't use the cache.",
+            "icon": {
+                "id": "package",
+                "color": "terminal.ansiYellow"
+            },
+            "type": "process",
+            "command": "docker",
+            "args": [
+                "buildx",
+                "build",
+                "--tag \"ocwsocial-local:latest\"",
+                "--file \"${workspaceFolder}/Dockerfile\"",
+                "."
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        }
+    ],
+    "inputs": []
+}
