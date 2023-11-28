@@ -18,12 +18,12 @@ RUN apt-get update ; \
 
 # Install core dependencies.
 RUN apt-get install -y \
-                curl \
-                wget \
-                gnupg \
-                apt-transport-https \
-                lsb-release ca-certificates \
-                git
+    curl \
+    wget \
+    gnupg \
+    apt-transport-https \
+    lsb-release ca-certificates \
+    git
 
 # Set up the NodeSource repository.
 RUN mkdir -p /etc/apt/keyrings; \
@@ -33,32 +33,32 @@ RUN mkdir -p /etc/apt/keyrings; \
 
 # Install the rest of the dependencies required to build Mastodon.
 RUN apt-get install -y \
-                imagemagick \
-                ffmpeg \
-                libpq-dev \
-                libxml2-dev \
-                libxslt1-dev \
-                file git-core \
-                g++ \
-                libprotobuf-dev \
-                protobuf-compiler \
-                pkg-config \
-                nodejs \
-                gcc \
-                autoconf \
-                bison \
-                build-essential \
-                libssl-dev \
-                libyaml-dev \
-                libreadline6-dev \
-                zlib1g-dev \
-                libncurses5-dev \
-                libffi-dev \
-                libgdbm-dev \
-                libidn11-dev \
-                libicu-dev \
-                libjemalloc-dev \
-                tini
+    imagemagick \
+    ffmpeg \
+    libpq-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    file git-core \
+    g++ \
+    libprotobuf-dev \
+    protobuf-compiler \
+    pkg-config \
+    nodejs \
+    gcc \
+    autoconf \
+    bison \
+    build-essential \
+    libssl-dev \
+    libyaml-dev \
+    libreadline6-dev \
+    zlib1g-dev \
+    libncurses5-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libidn11-dev \
+    libicu-dev \
+    libjemalloc-dev \
+    tini
 
 RUN corepack enable ; \
     yarn set version classic
