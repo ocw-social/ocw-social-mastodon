@@ -6,9 +6,8 @@ ARG OS_BUILD_SEED
 
 # Set the frontend to noninteractive to prevent tzdata from hanging during install
 # and set the version of Ruby to install.
-ENV DEBIAN_FRONTEND=noninteractive \
-    RUBY_INSTALL_VERSION=3.0.6
-
+ENV DEBIAN_FRONTEND=noninteractive
+ENV RUBY_INSTALL_VERSION=3.2.2
 ENV NODE_MAJOR=20
 
 RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime
