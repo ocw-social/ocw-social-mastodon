@@ -8,15 +8,13 @@
                 "id": "package",
                 "color": "terminal.ansiCyan"
             },
-            "type": "process",
-            "command": "docker",
-            "args": [
-                "buildx",
-                "build",
-                "--tag \"ocwsocial-local:latest\"",
-                "--file \"${workspaceFolder}/Dockerfile\"",
-                "."
-            ],
+            "type": "docker-build",
+            "dockerBuild": {
+                "dockerfile": "${workspaceFolder}/Dockerfile",
+                "context": "${workspaceFolder}",
+                "tag": "ocwsocial-local:latest",
+                "platform": "${input:containerPlatform}"
+            },
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -27,7 +25,8 @@
                 "panel": "shared",
                 "showReuseMessage": true,
                 "clear": true
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "Build image locally (No cache)",
@@ -36,15 +35,14 @@
                 "id": "package",
                 "color": "terminal.ansiYellow"
             },
-            "type": "process",
-            "command": "docker",
-            "args": [
-                "buildx",
-                "build",
-                "--tag \"ocwsocial-local:latest\"",
-                "--file \"${workspaceFolder}/Dockerfile\"",
-                "."
-            ],
+            "type": "docker-build",
+            "dockerBuild": {
+                "dockerfile": "${workspaceFolder}/Dockerfile",
+                "context": "${workspaceFolder}",
+                "tag": "ocwsocial-local:latest",
+                "platform": "${input:containerPlatform}",
+                "customOptions": "--no-cache"
+            },
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -55,8 +53,20 @@
                 "panel": "shared",
                 "showReuseMessage": true,
                 "clear": true
-            }
+            },
+            "problemMatcher": []
         }
     ],
-    "inputs": []
+    "inputs": [
+        {
+            "id": "containerPlatform",
+            "type": "pickString",
+            "description": "Select the container platform to build for.",
+            "default": "linux/amd64",
+            "options": [
+                "linux/amd64",
+                "linux/arm64"
+            ]
+        }
+    ]
 }
