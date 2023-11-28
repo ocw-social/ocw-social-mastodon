@@ -2,3 +2,5 @@
 redis/
 public/
 certbot/
+
+.DS_Store
