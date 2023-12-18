@@ -114,6 +114,7 @@ RUN mkdir /mastodon/app/javascript/styles/elephant ; \
 RUN git config user.name "ContainerBuild" ; \
     git config user.email "build@localhost" ; \
     git am /tmp/glitch-soc-patches/0001-Add-OCW-edition-flavour-files.patch ; \
+    git am /tmp/glitch-soc-patches/0002-Attempting-to-fix-flavour.patch ; \
     rm -rf /tmp/glitch-soc-patches
 
 # Copy Bird UI theme files to /mastodon/app/javascript/styles.

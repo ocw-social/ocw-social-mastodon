@@ -1,0 +1,283 @@
+From 959f138854550416ffc1dd81f4414ac34b3651e1 Mon Sep 17 00:00:00 2001
+From: Timothy Small <smalls.online@icloud.com>
+Date: Mon, 18 Dec 2023 15:59:19 -0500
+Subject: [PATCH] Attempting to fix flavour
+
+Did some diff-ing between the current glitch flavour and what's in the OCW flavour. This _should_ fix some issues with the UI being broken and it recently breaking the build process.
+---
+ .../flavours/ocw/containers/mastodon.jsx      |  7 +--
+ .../features/ui/components/columns_area.jsx   | 14 ++---
+ .../flavours/ocw/features/ui/index.jsx        | 51 +++++++++----------
+ app/javascript/flavours/ocw/main.jsx          |  2 +-
+ 4 files changed, 34 insertions(+), 40 deletions(-)
+
+diff --git a/app/javascript/flavours/ocw/containers/mastodon.jsx b/app/javascript/flavours/ocw/containers/mastodon.jsx
+index 239dcf6..2160987 100644
+--- a/app/javascript/flavours/ocw/containers/mastodon.jsx
++++ b/app/javascript/flavours/ocw/containers/mastodon.jsx
+@@ -22,6 +22,7 @@ import { store } from 'flavours/glitch/store';
+ const title = process.env.NODE_ENV === 'production' ? siteTitle : `${siteTitle} (Dev)`;
+ 
+ const hydrateAction = hydrateStore(initialState);
++
+ store.dispatch(hydrateAction);
+ 
+ // check for deprecated local settings
+@@ -71,8 +72,8 @@ export default class Mastodon extends PureComponent {
+     }
+   }
+ 
+-  shouldUpdateScroll (_, { location }) {
+-    return !(location.state?.mastodonModalKey);
++  shouldUpdateScroll (prevRouterProps, { location }) {
++    return !(location.state?.mastodonModalKey && location.state?.mastodonModalKey !== prevRouterProps?.location?.state?.mastodonModalKey);
+   }
+ 
+   render () {
+@@ -93,4 +94,4 @@ export default class Mastodon extends PureComponent {
+     );
+   }
+ 
+-}
+\ No newline at end of file
++}
+diff --git a/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx b/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
+index 34c5c31..eb263ce 100644
+--- a/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
++++ b/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
+@@ -46,17 +46,11 @@ const componentMap = {
+ };
+ 
+ export default class ColumnsArea extends ImmutablePureComponent {
+-
+-  static contextTypes = {
+-    router: PropTypes.object.isRequired,
+-    identity: PropTypes.object
+-  };
+-
+   static propTypes = {
+     columns: ImmutablePropTypes.list.isRequired,
+     singleColumn: PropTypes.bool,
+     children: PropTypes.node,
+-    openSettings: PropTypes.func
++    openSettings: PropTypes.func,
+   };
+ 
+   // Corresponds to (max-width: $no-gap-breakpoint + 285px - 1px) in SCSS
+@@ -83,7 +77,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
+     this.isRtlLayout = document.getElementsByTagName('body')[0].classList.contains('rtl');
+   }
+ 
+-  componentWillUpdate(nextProps) {
++  UNSAFE_componentWillUpdate(nextProps) {
+     if (this.props.singleColumn !== nextProps.singleColumn && nextProps.singleColumn) {
+       this.node.removeEventListener('wheel', this.handleWheel);
+     }
+@@ -95,7 +89,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
+     }
+   }
+ 
+-  componentWillUnmount() {
++  componentWillUnmount () {
+     if (!this.props.singleColumn) {
+       this.node.removeEventListener('wheel', this.handleWheel);
+     }
+@@ -177,7 +171,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
+       <div className='columns-area' ref={this.setRef}>
+         {columns.map(column => {
+           const params = column.get('params', null) === null ? null : column.get('params').toJS();
+-          const other = params && params.other ? params.other : {};
++          const other  = params && params.other ? params.other : {};
+ 
+           return (
+             <BundleContainer key={column.get('uuid')} fetchComponent={componentMap[column.get('id')]} loading={this.renderLoading(column.get('id'))} error={this.renderError}>
+diff --git a/app/javascript/flavours/ocw/features/ui/index.jsx b/app/javascript/flavours/ocw/features/ui/index.jsx
+index 00716f6..1367cf8 100644
+--- a/app/javascript/flavours/ocw/features/ui/index.jsx
++++ b/app/javascript/flavours/ocw/features/ui/index.jsx
+@@ -1,5 +1,5 @@
+ import PropTypes from 'prop-types';
+-import { PureComponent, Component } from 'react';
++import { PureComponent } from 'react';
+ 
+ import { defineMessages, FormattedMessage, injectIntl } from 'react-intl';
+ 
+@@ -16,12 +16,16 @@ import { changeLayout } from 'flavours/glitch/actions/app';
+ import { uploadCompose, resetCompose, changeComposeSpoilerness } from 'flavours/glitch/actions/compose';
+ import { clearHeight } from 'flavours/glitch/actions/height_cache';
+ import { synchronouslySubmitMarkers, submitMarkers, fetchMarkers } from 'flavours/glitch/actions/markers';
++
++import { INTRODUCTION_VERSION } from 'flavours/glitch/actions/onboarding';
++
+ import { expandNotifications, notificationsSetVisibility } from 'flavours/glitch/actions/notifications';
+ import { fetchServer, fetchServerTranslationLanguages } from 'flavours/glitch/actions/server';
+ import { expandHomeTimeline } from 'flavours/glitch/actions/timelines';
+ import PermaLink from 'flavours/glitch/components/permalink';
+ import PictureInPicture from 'flavours/glitch/features/picture_in_picture';
+ import { layoutFromWindow } from 'flavours/glitch/is_mobile';
++import { WithRouterPropTypes } from 'flavours/glitch/utils/react_router';
+ 
+ import initialState, { me, owner, singleUserMode, trendsEnabled, trendsAsLanding } from 'flavours/glitch/initial_state';
+ 
+@@ -61,7 +65,7 @@ import {
+   GettingStartedMisc,
+   Directory,
+   Explore,
+-  FollowRecommendations,
++  Onboarding,
+   About,
+   PrivacyPolicy,
+ } from 'flavours/glitch/features/ui/util/async-components';
+@@ -80,12 +84,12 @@ const mapStateToProps = state => ({
+   hasMediaAttachments: state.getIn(['compose', 'media_attachments']).size > 0,
+   canUploadMore: !state.getIn(['compose', 'media_attachments']).some(x => ['audio', 'video'].includes(x.get('type'))) && state.getIn(['compose', 'media_attachments']).size < 4,
+   isWide: state.getIn(['local_settings', 'stretch']),
+-  dropdownMenuIsOpen: state.getIn(['dropdown_menu', 'openId']) !== null,
++  dropdownMenuIsOpen: state.dropdownMenu.openId !== null,
+   unreadNotifications: state.getIn(['notifications', 'unread']),
+   showFaviconBadge: state.getIn(['local_settings', 'notifications', 'favicon_badge']),
+   hicolorPrivacyIcons: state.getIn(['local_settings', 'hicolor_privacy_icons']),
+   moved: state.getIn(['accounts', me, 'moved']) && state.getIn(['accounts', state.getIn(['accounts', me, 'moved'])]),
+-  firstLaunch: false, // TODO: state.getIn(['settings', 'introductionVersion'], 0) < INTRODUCTION_VERSION,
++  firstLaunch: state.getIn(['settings', 'introductionVersion'], 0) < INTRODUCTION_VERSION,
+   username: state.getIn(['accounts', me, 'username']),
+ });
+ 
+@@ -117,7 +121,7 @@ const keyMap = {
+   goToBlocked: 'g b',
+   goToMuted: 'g m',
+   goToRequests: 'g r',
+-  toggleSpoiler: 'x',
++  toggleHidden: 'x',
+   bookmark: 'd',
+   toggleCollapse: 'shift+x',
+   toggleSensitive: 'h',
+@@ -191,7 +195,9 @@ class SwitchingColumnsArea extends PureComponent {
+ 
+           {singleColumn ? <Redirect from='/deck' to='/home' exact /> : null}
+           {singleColumn && pathName.startsWith('/deck/') ? <Redirect from={pathName} to={pathName.slice(5)} /> : null}
++          {/* Redirect old bookmarks (without /deck) with home-like routes to the advanced interface */}
+           {!singleColumn && pathName === '/getting-started' ? <Redirect from='/getting-started' to='/deck/getting-started' exact /> : null}
++          {!singleColumn && pathName === '/home' ? <Redirect from='/home' to='/deck/getting-started' exact /> : null}
+ 
+           <WrappedRoute path='/getting-started' component={GettingStarted} content={children} />
+           <WrappedRoute path='/keyboard-shortcuts' component={KeyboardShortcuts} content={children} />
+@@ -213,7 +219,7 @@ class SwitchingColumnsArea extends PureComponent {
+           <WrappedRoute path='/bookmarks' component={BookmarkedStatuses} content={children} />
+           <WrappedRoute path='/pinned' component={PinnedStatuses} content={children} />
+ 
+-          <WrappedRoute path='/start' component={FollowRecommendations} content={children} />
++          <WrappedRoute path='/start' exact component={Onboarding} content={children} />
+           <WrappedRoute path='/directory' component={Directory} content={children} />
+           <WrappedRoute path={['/explore', '/search']} component={Explore} content={children} />
+           <WrappedRoute path={['/publish', '/statuses/new']} component={Compose} content={children} />
+@@ -251,7 +257,7 @@ class SwitchingColumnsArea extends PureComponent {
+ 
+ }
+ 
+-class UI extends Component {
++class UI extends PureComponent {
+ 
+   static contextTypes = {
+     identity: PropTypes.object.isRequired,
+@@ -266,9 +272,6 @@ class UI extends Component {
+     hasComposingText: PropTypes.bool,
+     hasMediaAttachments: PropTypes.bool,
+     canUploadMore: PropTypes.bool,
+-    match: PropTypes.object.isRequired,
+-    location: PropTypes.object.isRequired,
+-    history: PropTypes.object.isRequired,
+     intl: PropTypes.object.isRequired,
+     dropdownMenuIsOpen: PropTypes.bool,
+     unreadNotifications: PropTypes.number,
+@@ -278,13 +281,14 @@ class UI extends Component {
+     layout: PropTypes.string.isRequired,
+     firstLaunch: PropTypes.bool,
+     username: PropTypes.string,
++    ...WithRouterPropTypes,
+   };
+ 
+   state = {
+     draggingOver: false,
+   };
+ 
+-  handleBeforeUnload = (e) => {
++  handleBeforeUnload = e => {
+     const { intl, dispatch, hasComposingText, hasMediaAttachments } = this.props;
+ 
+     dispatch(synchronouslySubmitMarkers());
+@@ -297,6 +301,14 @@ class UI extends Component {
+     }
+   };
+ 
++  handleVisibilityChange = () => {
++    const visibility = !document[this.visibilityHiddenProp];
++    this.props.dispatch(notificationsSetVisibility(visibility));
++    if (visibility) {
++      this.props.dispatch(submitMarkers({ immediate: true }));
++    }
++  };
++
+   handleDragEnter = (e) => {
+     e.preventDefault();
+ 
+@@ -308,13 +320,14 @@ class UI extends Component {
+       this.dragTargets.push(e.target);
+     }
+ 
+-    if (e.dataTransfer && e.dataTransfer.types.includes('Files') && this.props.canUploadMore && this.context.identity.signedIn) {
++    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files') && this.props.canUploadMore && this.context.identity.signedIn) {
+       this.setState({ draggingOver: true });
+     }
+   };
+ 
+   handleDragOver = (e) => {
+     if (this.dataTransferIsText(e.dataTransfer)) return false;
++
+     e.preventDefault();
+     e.stopPropagation();
+ 
+@@ -369,14 +382,6 @@ class UI extends Component {
+     }
+   };
+ 
+-  handleVisibilityChange = () => {
+-    const visibility = !document[this.visibilityHiddenProp];
+-    this.props.dispatch(notificationsSetVisibility(visibility));
+-    if (visibility) {
+-      this.props.dispatch(submitMarkers({ immediate: true }));
+-    }
+-  };
+-
+   handleLayoutChange = debounce(() => {
+     this.props.dispatch(clearHeight()); // The cached heights are no longer accurate, invalidate
+   }, 500, {
+@@ -412,12 +417,6 @@ class UI extends Component {
+ 
+     this.favicon = new Favico({ animation:'none' });
+ 
+-    // On first launch, redirect to the follow recommendations page
+-    if (signedIn && this.props.firstLaunch) {
+-      this.context.router.history.replace('/start');
+-      // TODO: this.props.dispatch(closeOnboarding());
+-    }
+-
+     if (signedIn) {
+       this.props.dispatch(fetchMarkers());
+       this.props.dispatch(expandHomeTimeline());
+diff --git a/app/javascript/flavours/ocw/main.jsx b/app/javascript/flavours/ocw/main.jsx
+index 36f1790..bb4531a 100644
+--- a/app/javascript/flavours/ocw/main.jsx
++++ b/app/javascript/flavours/ocw/main.jsx
+@@ -33,7 +33,7 @@ function main() {
+         console.error(err);
+       }
+ 
+-      if (registration) {
++      if (registration && 'Notification' in window && Notification.permission === 'granted') {
+         const registerPushNotifications = await import('flavours/glitch/actions/push_notifications');
+ 
+         store.dispatch(registerPushNotifications.register());
+-- 
+2.43.0
+
