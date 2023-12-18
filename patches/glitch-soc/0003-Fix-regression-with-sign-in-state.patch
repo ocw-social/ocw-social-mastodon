@@ -1,0 +1,27 @@
+From e92c6265daa012a7e834a741f1f666baade085c2 Mon Sep 17 00:00:00 2001
+From: Timothy Small <smalls.online@icloud.com>
+Date: Mon, 18 Dec 2023 16:42:25 -0500
+Subject: [PATCH] Fix regression with sign-in state
+
+---
+ .../flavours/ocw/features/ui/components/columns_area.jsx      | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx b/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
+index eb263ce..adfd8b4 100644
+--- a/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
++++ b/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
+@@ -46,6 +46,10 @@ const componentMap = {
+ };
+ 
+ export default class ColumnsArea extends ImmutablePureComponent {
++  static contextTypes = {
++    identity: PropTypes.object.isRequired,
++  };
++
+   static propTypes = {
+     columns: ImmutablePropTypes.list.isRequired,
+     singleColumn: PropTypes.bool,
+-- 
+2.43.0
+
