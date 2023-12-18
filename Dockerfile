@@ -143,7 +143,7 @@ ENV RAILS_ENV="production" \
 RUN OTP_SECRET=precompile_placeholder SECRET_KEY_BASE=precompile_placeholder bundle exec rails assets:precompile && \
     yarn cache clean
 
-LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social
+LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social-mastodon
 LABEL org.opencontainers.image.description="Container image for the OCW Social Mastodon server."
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
