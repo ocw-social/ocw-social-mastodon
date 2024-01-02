@@ -1,0 +1,16 @@
+name: "Improvement request"
+description: "For requesting/documenting improvements."
+title: "[Improvement request]: "
+labels:
+  - "enhancement"
+body:
+  - id: "ImprovementInfo"
+    type: textarea
+    attributes:
+      label: "Describe the improvement"
+      description: "A description of the improvement that should be made."
+      placeholder: |
+        Add an easter egg to the build process.
+    validations:
+      required: true
+    
