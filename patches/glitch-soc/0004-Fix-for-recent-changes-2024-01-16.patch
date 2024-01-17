@@ -1,0 +1,41 @@
+From f4eeebe726d7b13d86164d0736aa411557d377c1 Mon Sep 17 00:00:00 2001
+From: Timothy Small <smalls.online@icloud.com>
+Date: Tue, 16 Jan 2024 21:49:06 -0500
+Subject: [PATCH] Fix for recent changes 2024-01-16
+
+---
+ .../flavours/ocw/features/ui/components/columns_area.jsx        | 2 +-
+ app/javascript/flavours/ocw/features/ui/index.jsx               | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx b/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
+index adfd8b4..85f368a 100644
+--- a/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
++++ b/app/javascript/flavours/ocw/features/ui/components/columns_area.jsx
+@@ -24,9 +24,9 @@ import {
+ } from 'flavours/glitch/features/ui/util/async-components';
+ 
+ import BundleColumnError from 'flavours/glitch/features/ui/components/bundle_column_error';
+-import ColumnLoading from 'flavours/glitch/features/ui/components/column_loading';
+ import ComposePanel from './compose_panel';
+ import ComposeFormContainer from 'flavours/glitch/features/compose/containers/compose_form_container';
++import { ColumnLoading } from 'flavours/glitch/features/ui/components/column_loading';
+ import DrawerLoading from 'flavours/glitch/features/ui/components/drawer_loading';
+ import NavigationPanel from 'flavours/glitch/features/ui/components/navigation_panel';
+ 
+diff --git a/app/javascript/flavours/ocw/features/ui/index.jsx b/app/javascript/flavours/ocw/features/ui/index.jsx
+index 1367cf8..9e745d7 100644
+--- a/app/javascript/flavours/ocw/features/ui/index.jsx
++++ b/app/javascript/flavours/ocw/features/ui/index.jsx
+@@ -22,7 +22,7 @@ import { INTRODUCTION_VERSION } from 'flavours/glitch/actions/onboarding';
+ import { expandNotifications, notificationsSetVisibility } from 'flavours/glitch/actions/notifications';
+ import { fetchServer, fetchServerTranslationLanguages } from 'flavours/glitch/actions/server';
+ import { expandHomeTimeline } from 'flavours/glitch/actions/timelines';
+-import PermaLink from 'flavours/glitch/components/permalink';
++import { Permalink } from 'flavours/glitch/components/permalink';
+ import PictureInPicture from 'flavours/glitch/features/picture_in_picture';
+ import { layoutFromWindow } from 'flavours/glitch/is_mobile';
+ import { WithRouterPropTypes } from 'flavours/glitch/utils/react_router';
+-- 
+2.43.0
+

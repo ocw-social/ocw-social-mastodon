@@ -116,6 +116,7 @@ RUN git config user.name "ContainerBuild" ; \
     git am /tmp/glitch-soc-patches/0001-Add-OCW-edition-flavour-files.patch ; \
     git am /tmp/glitch-soc-patches/0002-Attempting-to-fix-flavour.patch ; \
     git am /tmp/glitch-soc-patches/0003-Fix-regression-with-sign-in-state.patch ; \
+    git am /tmp/glitch-soc-patches/0004-Fix-for-recent-changes-2024-01-16.patch ; \
     rm -rf /tmp/glitch-soc-patches
 
 # Copy Bird UI theme files to /mastodon/app/javascript/styles.
