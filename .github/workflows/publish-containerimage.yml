@@ -57,7 +57,7 @@ jobs:
         # Cache the current seed for building the OS.
         - name: Cache OS build seed
           id: cache_os_build_seed
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
             path: ./.os-build-seed
             key: ${{ runner.os }}-os-build-seed
@@ -65,7 +65,7 @@ jobs:
         # Cache the current seed for building Mastodon.
         - name: Cache Mastodon build seed
           id: cache_mastodon_build_seed
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
             path: ./.build-seed
             key: ${{ runner.os }}-build-seed
