@@ -21,7 +21,7 @@ jobs:
 
             # Delete older images, keeping the 5 most recent.
             - name: Delete older images
-              uses: actions/delete-package-versions@v4
+              uses: actions/delete-package-versions@v5
               with:
                 package-type: 'container'
                 package-name: 'ocw-social-mastodon'
