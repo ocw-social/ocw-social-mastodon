@@ -134,7 +134,8 @@ ENV RAILS_ENV="production" \
 RUN OTP_SECRET=precompile_placeholder SECRET_KEY_BASE=precompile_placeholder bundle exec rails assets:precompile && \
     yarn cache clean
 
-RUN rm -rf /mastodon/.git
+RUN rm -rf /mastodon/.git && \
+    rm -rf /mastodon/node_modules
 
 FROM ruby-final AS mastodon-app
 USER mastodon
