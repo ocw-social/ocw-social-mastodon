@@ -1,38 +1,25 @@
 FROM docker.io/library/ubuntu:22.04 AS os-base
 
-SHELL ["/bin/bash", "-lc"]
-
 ARG OS_BUILD_SEED
 
 # Set the frontend to noninteractive to prevent tzdata from hanging during install
 # and set the version of Ruby to install.
 ENV DEBIAN_FRONTEND=noninteractive
-ENV RUBY_INSTALL_VERSION=3.2.2
 ENV NODE_MAJOR=20
 
-RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime
-
-# Run apt update and upgrade to ensure the latest packages are installed.
-RUN apt-get update ; \
-    apt-get upgrade -y
-
-# Install core dependencies.
-RUN apt-get install -y \
-    curl \
-    wget \
-    gnupg \
-    apt-transport-https \
-    lsb-release ca-certificates \
-    git
-
-# Set up the NodeSource repository.
-RUN mkdir -p /etc/apt/keyrings; \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg; \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list; \
-    apt-get update
-
-# Install the rest of the dependencies required to build Mastodon.
-RUN apt-get install -y \
+# Set timezone to EST/EDT, update installed packages,
+# setup NodeSource for NodeJS, install all required packages,
+# and add the 'mastodon' user.
+RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime ; \
+    apt-get update ; \
+    apt-get upgrade -y ; \
+    apt-get install -y curl wget gnupg apt-transport-https lsb-release ca-certificates git ; \
+    mkdir -p /etc/apt/keyrings ; \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg ; \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list ; \
+    apt-get update ; \
+    apt-get install -y \
+    bash \
     imagemagick \
     ffmpeg \
     libpq-dev \
@@ -58,35 +45,37 @@ RUN apt-get install -y \
     libidn11-dev \
     libicu-dev \
     libjemalloc-dev \
-    tini
+    tini ; \
+    apt-get autoremove -y ; \
+    apt-get clean ; \
+    corepack enable ; \
+    yarn set version classic ; \
+    adduser --disabled-login mastodon
 
-RUN corepack enable ; \
-    yarn set version classic
-
-# Create a user named 'mastodon' to run Mastodon as.
-RUN adduser --disabled-login mastodon
+FROM os-base AS ruby-base
 
 # Switch to the 'mastodon' user and set up its environment.
 USER mastodon
-RUN touch /home/mastodon/.bashrc
 SHELL ["/bin/bash", "-lc"]
+ENV RUBY_INSTALL_VERSION=3.2.2
 ENV PATH="/home/mastodon/.rbenv/bin:/home/mastodon/.rbenv/versions/${RUBY_INSTALL_VERSION}/bin:$PATH"
 
-# Install rbenv.
-RUN git clone https://github.com/rbenv/rbenv.git /home/mastodon/.rbenv ; \
-    echo 'export PATH="/home/mastodon/.rbenv/bin:$PATH"' >> /home/mastodon/.bashrc \
-    echo 'eval "$(rbenv init - bash)"' >> /home/mastodon/.bashrc ; \
-    exec bash
+COPY --chown=mastodon:mastodon ./scripts/compileRuby.sh /tmp/compileRuby.sh
 
-# Install ruby-build and install Ruby.
-RUN git clone https://github.com/rbenv/ruby-build.git /home/mastodon/.rbenv/plugins/ruby-build ; \
-    cd /home/mastodon/.rbenv ; \
-    RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install ${RUBY_INSTALL_VERSION} ; \
-    rbenv global ${RUBY_INSTALL_VERSION} ; \
-    gem install bundler --no-document
+RUN chmod +x /tmp/compileRuby.sh && \
+    /bin/bash /tmp/compileRuby.sh && \
+    rm -f /tmp/compileRuby.sh
 
-FROM os-base AS mastodon-app
+FROM ruby-base AS ruby-final
+USER mastodon
+
+COPY --from=ruby-base /home/mastodon/.rbenv/bin /home/mastodon/.rbenv/bin
+COPY --from=ruby-base /home/mastodon/.rbenv/versions/$RUBY_INSTALL_VERSION/bin /home/mastodon/.rbenv/versions/$RUBY_INSTALL_VERSION/bin
+
+FROM ruby-final AS mastodon-build
 ARG BUILD_SEED
+
+USER mastodon
 
 # Set the working directory to '/mastodon' and clone the Mastodon Glitch repository.
 WORKDIR /mastodon
@@ -130,9 +119,9 @@ COPY ./themes/vanilla/elephant-light/ /mastodon/app/javascript/skins/vanilla/ele
 COPY ./themes/vanilla/elephant-contrast/ /mastodon/app/javascript/skins/vanilla/elephant-contrast/
 
 # Install the required gems and JavaScript packages.
-RUN bundle config deployment "true" ; \
-    bundle config without "development test" ; \
-    bundle install -j$(getconf _NPROCESSORS_ONLN) ; \
+RUN bundle config deployment "true" && \
+    bundle config without "development test" && \
+    bundle install -j$(getconf _NPROCESSORS_ONLN) && \
     yarn install --immutable
 
 # Set the necessary environment variables for precompiling assets.
@@ -144,6 +133,13 @@ ENV RAILS_ENV="production" \
 # Precompile the assets.
 RUN OTP_SECRET=precompile_placeholder SECRET_KEY_BASE=precompile_placeholder bundle exec rails assets:precompile && \
     yarn cache clean
+
+RUN rm -rf /mastodon/.git
+
+FROM ruby-final AS mastodon-app
+USER mastodon
+
+COPY --chown=mastodon:mastodon --from=mastodon-build /mastodon /mastodon
 
 LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social-mastodon
 LABEL org.opencontainers.image.description="Container image for the OCW Social Mastodon server."
