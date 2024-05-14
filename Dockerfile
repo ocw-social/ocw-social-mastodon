@@ -141,6 +141,8 @@ RUN rm -rf /mastodon/.git && \
 FROM ruby-final AS mastodon-app
 USER mastodon
 
+WORKDIR /mastodon
+
 COPY --chown=mastodon:mastodon --from=mastodon-build /mastodon /mastodon
 
 LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social-mastodon
