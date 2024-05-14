@@ -123,7 +123,7 @@ COPY ./themes/vanilla/elephant-contrast/ /mastodon/app/javascript/skins/vanilla/
 RUN bundle config deployment "true" && \
     bundle config without "development test" && \
     bundle install -j$(getconf _NPROCESSORS_ONLN) && \
-    yarn install --immutable
+    yarn install --pure-lockfile
 
 # Set the necessary environment variables for precompiling assets.
 ENV RAILS_ENV="production" \
