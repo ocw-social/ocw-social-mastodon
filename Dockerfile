@@ -1,5 +1,9 @@
+ARG TARGETPLATFORM=${TARGETPLATFORM}
+ARG BUILDPLATFORM=${BUILDPLATFORM}
+
 FROM docker.io/library/ubuntu:22.04 AS os-base
 
+ARG TARGETPLATFORM
 ARG OS_BUILD_SEED
 
 # Set the frontend to noninteractive to prevent tzdata from hanging during install
@@ -55,10 +59,12 @@ RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime ; \
 
 FROM os-base AS ruby-base
 
+ARG TARGETPLATFORM
+
 # Switch to the 'mastodon' user and set up its environment.
 USER mastodon
 SHELL ["/bin/bash", "-lc"]
-ENV RUBY_INSTALL_VERSION=3.2.2
+ENV RUBY_INSTALL_VERSION=3.3.1
 ENV PATH="/home/mastodon/.rbenv/bin:/home/mastodon/.rbenv/versions/${RUBY_INSTALL_VERSION}/bin:$PATH"
 
 COPY --chown=mastodon:mastodon ./scripts/compileRuby.sh /tmp/compileRuby.sh
@@ -68,12 +74,15 @@ RUN chmod +x /tmp/compileRuby.sh && \
     rm -f /tmp/compileRuby.sh
 
 FROM ruby-base AS ruby-final
+ARG TARGETPLATFORM
+
 USER mastodon
 
 COPY --from=ruby-base /home/mastodon/.rbenv/bin /home/mastodon/.rbenv/bin
 COPY --from=ruby-base /home/mastodon/.rbenv/versions/$RUBY_INSTALL_VERSION/bin /home/mastodon/.rbenv/versions/$RUBY_INSTALL_VERSION/bin
 
 FROM ruby-final AS mastodon-build
+ARG TARGETPLATFORM
 ARG BUILD_SEED
 
 USER mastodon
@@ -144,6 +153,8 @@ RUN rm -rf /mastodon/.git && \
     rm -rf /mastodon/node_modules
 
 FROM ruby-final AS mastodon-app
+ARG TARGETPLATFORM
+
 USER mastodon
 
 WORKDIR /mastodon
