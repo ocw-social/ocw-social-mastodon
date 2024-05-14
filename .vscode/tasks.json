@@ -13,7 +13,8 @@
                 "dockerfile": "${workspaceFolder}/Dockerfile",
                 "context": "${workspaceFolder}",
                 "tag": "ocwsocial-local:latest",
-                "platform": "${input:containerPlatform}"
+                "platform": "${input:containerPlatform}",
+                "customOptions": "--load"
             },
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -41,7 +42,7 @@
                 "context": "${workspaceFolder}",
                 "tag": "ocwsocial-local:latest",
                 "platform": "${input:containerPlatform}",
-                "customOptions": "--no-cache"
+                "customOptions": "--no-cache --load"
             },
             "options": {
                 "cwd": "${workspaceFolder}"
