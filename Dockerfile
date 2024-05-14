@@ -48,6 +48,7 @@ RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime ; \
     tini ; \
     apt-get autoremove -y ; \
     apt-get clean ; \
+    rm -rf /var/lib/apt/lists/* ;\
     corepack enable ; \
     yarn set version classic ; \
     adduser --disabled-login mastodon
