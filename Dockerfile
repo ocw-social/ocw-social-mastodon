@@ -53,9 +53,16 @@ RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime ; \
     apt-get autoremove -y ; \
     apt-get clean ; \
     rm -rf /var/lib/apt/lists/* ;\
-    corepack enable ; \
-    yarn set version classic ; \
     adduser --disabled-login mastodon
+
+RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
+
+WORKDIR /mastodon
+
+RUN corepack enable; \
+    corepack prepare --activate
+
+RUN chown -R mastodon:mastodon /mastodon
 
 FROM os-base AS ruby-base
 
@@ -89,7 +96,7 @@ USER mastodon
 
 # Set the working directory to '/mastodon' and clone the Mastodon Glitch repository.
 WORKDIR /mastodon
-RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
+#RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 
 RUN git clone --branch "main" https://github.com/ronilaukkarinen/mastodon-bird-ui.git /tmp/mastodon-bird-ui
 
@@ -131,8 +138,10 @@ COPY ./themes/vanilla/elephant-contrast/ /mastodon/app/javascript/skins/vanilla/
 # Install the required gems and JavaScript packages.
 RUN bundle config deployment "true" && \
     bundle config without "development test" && \
-    bundle install -j$(getconf _NPROCESSORS_ONLN) && \
-    yarn install --pure-lockfile
+    bundle install -j$(getconf _NPROCESSORS_ONLN)
+
+RUN yarn workspaces focus --production @mastodon/mastodon && \
+    yarn install --immutable
 
 # Set the necessary environment variables for precompiling assets.
 ENV RAILS_ENV="production" \
@@ -146,8 +155,9 @@ RUN ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=precompile_placeholder \
     ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=precompile_placeholder \
     OTP_SECRET=precompile_placeholder \
     SECRET_KEY_BASE=precompile_placeholder \
-    bundle exec rails assets:precompile && \
-    yarn cache clean
+    bundle exec rails assets:precompile
+
+RUN yarn cache clean
 
 RUN rm -rf /mastodon/.git && \
     rm -rf /mastodon/node_modules
