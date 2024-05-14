@@ -159,8 +159,7 @@ RUN ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=precompile_placeholder \
 
 RUN yarn cache clean
 
-RUN rm -rf /mastodon/.git && \
-    rm -rf /mastodon/node_modules
+RUN rm -rf /mastodon/.git
 
 FROM ruby-final AS mastodon-app
 ARG TARGETPLATFORM
