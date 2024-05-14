@@ -145,6 +145,6 @@ jobs:
             build-args: |
               OS_BUILD_SEED=${{ env.os_build_seed }}
               BUILD_SEED=${{ env.build_seed }}
-            platforms: linux/amd64
+            platforms: linux/amd64,linux/arm64
             cache-from: type=gha
             cache-to: type=gha,mode=max
