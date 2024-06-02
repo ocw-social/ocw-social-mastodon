@@ -76,7 +76,6 @@ jobs:
         with:
           context: ./
           file: ./Dockerfile.old
-          push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: ${{ matrix.platform}}
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
