@@ -14,14 +14,14 @@ ENV NODE_MAJOR=20
 # Set timezone to EST/EDT, update installed packages,
 # setup NodeSource for NodeJS, install all required packages,
 # and add the 'mastodon' user.
-RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime ; \
-    apt-get update ; \
-    apt-get upgrade -y ; \
-    apt-get install -y curl wget gnupg apt-transport-https lsb-release ca-certificates git ; \
-    mkdir -p /etc/apt/keyrings ; \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg ; \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list ; \
-    apt-get update ; \
+RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && \
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y curl wget gnupg apt-transport-https lsb-release ca-certificates git && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
     apt-get install -y \
     bash \
     imagemagick \
@@ -49,17 +49,17 @@ RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime ; \
     libidn11-dev \
     libicu-dev \
     libjemalloc-dev \
-    tini ; \
-    apt-get autoremove -y ; \
-    apt-get clean ; \
-    rm -rf /var/lib/apt/lists/* ;\
+    tini && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     adduser --disabled-login mastodon
 
 RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
 
 WORKDIR /mastodon
 
-RUN corepack enable; \
+RUN corepack enable && \
     corepack prepare --activate
 
 RUN chown -R mastodon:mastodon /mastodon
@@ -105,24 +105,24 @@ COPY --chown=mastodon:mastodon ./patches/mastodon-bird-ui/ /tmp/mastodon-bird-ui
 
 WORKDIR /tmp/mastodon-bird-ui
 
-RUN git config user.name "ContainerBuild" ; \
-    git config user.email "build@localhost" ; \
+RUN git config user.name "ContainerBuild" && \
+    git config user.email "build@localhost" && \
     git am /tmp/mastodon-bird-ui-patches/0001-Add-modifications-for-OCW.Social.patch
 
 WORKDIR /mastodon
 
-RUN mkdir /mastodon/app/javascript/styles/elephant ; \
-    cp /tmp/mastodon-bird-ui/layout-multiple-columns.css /mastodon/app/javascript/styles/elephant/layout-multiple-columns.scss ; \
-    cp /tmp/mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss ; \
-    rm -rf /tmp/mastodon-bird-ui ; \
+RUN mkdir /mastodon/app/javascript/styles/elephant && \
+    cp /tmp/mastodon-bird-ui/layout-multiple-columns.css /mastodon/app/javascript/styles/elephant/layout-multiple-columns.scss && \
+    cp /tmp/mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss && \
+    rm -rf /tmp/mastodon-bird-ui && \
     rm -rf /tmp/mastodon-bird-ui-patches
 
-#RUN git config user.name "ContainerBuild" ; \
-#    git config user.email "build@localhost" ; \
-#    git am /tmp/glitch-soc-patches/0001-Add-OCW-edition-flavour-files.patch ; \
-#    git am /tmp/glitch-soc-patches/0002-Attempting-to-fix-flavour.patch ; \
-#    git am /tmp/glitch-soc-patches/0003-Fix-regression-with-sign-in-state.patch ; \
-#    git am /tmp/glitch-soc-patches/0004-Fix-for-recent-changes-2024-01-16.patch ; \
+#RUN git config user.name "ContainerBuild" && \
+#    git config user.email "build@localhost" && \
+#    git am /tmp/glitch-soc-patches/0001-Add-OCW-edition-flavour-files.patch && \
+#    git am /tmp/glitch-soc-patches/0002-Attempting-to-fix-flavour.patch && \
+#    git am /tmp/glitch-soc-patches/0003-Fix-regression-with-sign-in-state.patch && \
+#    git am /tmp/glitch-soc-patches/0004-Fix-for-recent-changes-2024-01-16.patch && \
 #    rm -rf /tmp/glitch-soc-patches
 
 # Copy Bird UI theme files to /mastodon/app/javascript/styles.
