@@ -61,24 +61,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
-            type=sha
-
       - name: Build and push container image to registry
         id: build
         uses: docker/build-push-action@v5
         with:
           context: ./
           file: ./Dockerfile.old
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: ${{ matrix.platform}}
+          platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
@@ -110,11 +99,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Docker meta
+      - name: Set metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
+            type=sha
 
       - name: Log into GitHub container registry
         uses: docker/login-action@v3
