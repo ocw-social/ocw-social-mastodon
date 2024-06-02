@@ -18,13 +18,15 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ inputs.isDev == true && 'ocw-social-mastodon-dev' || 'ocw-social-mastodon' }}
+  IMAGE_NAME: ${{ inputs.isDev == true && 'ocw-social-mastodon-dev' || 'ocw-social-mastodon' }}
 
 jobs:
   build:
     name: Build and push container image
     runs-on: ubuntu-latest
+    
     strategy:
+      fail-fast: false
       matrix:
         platform: [linux/amd64, linux/arm64]
 
