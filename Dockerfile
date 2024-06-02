@@ -1,7 +1,7 @@
 ARG TARGETPLATFORM=${TARGETPLATFORM}
 ARG BUILDPLATFORM=${BUILDPLATFORM}
 
-FROM docker.io/library/ubuntu:22.04 AS os-base
+FROM --platform=${TARGETPLATFORM} docker.io/library/ubuntu:22.04 AS os-base
 
 ARG TARGETPLATFORM
 ARG OS_BUILD_SEED
