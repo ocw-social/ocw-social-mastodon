@@ -23,7 +23,7 @@ env:
 jobs:
   build:
     name: Build and push container image
-    runs-on: ${{ matrix.platform == 'linux/arm64' && 'self-hosted-linux-arm64' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.platform == 'linux/arm64' && 'self-hosted' || 'ubuntu-latest' }}
     
     strategy:
       fail-fast: false
