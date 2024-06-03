@@ -1,177 +1,157 @@
 ARG TARGETPLATFORM=${TARGETPLATFORM}
 ARG BUILDPLATFORM=${BUILDPLATFORM}
 
-FROM --platform=${TARGETPLATFORM} docker.io/library/ubuntu:22.04 AS os-base
+# Ruby image to use for base image.
+ARG RUBY_VERSION="3.3.2"
+# # Node version to use in base image.
+ARG NODE_MAJOR="20"
+# Debian image to use for base image.
+ARG DEBIAN_VERSION="bookworm"
 
-ARG TARGETPLATFORM
-ARG OS_BUILD_SEED
+FROM --platform=${TARGETPLATFORM} docker.io/node:${NODE_MAJOR}-${DEBIAN_VERSION}-slim as node
+FROM --platform=${TARGETPLATFORM} docker.io/ruby:${RUBY_VERSION}-slim-${DEBIAN_VERSION} as ruby
+
+ARG RAILS_SERVE_STATIC_FILES="true"
+ARG RUBY_YJIT_ENABLE="1"
+
+ARG UID="991"
+ARG GID="991"
 
 # Set the frontend to noninteractive to prevent tzdata from hanging during install
 # and set the version of Ruby to install.
 ENV DEBIAN_FRONTEND=noninteractive
-ENV NODE_MAJOR=20
+ENV NODE_MAJOR=${NODE_MAJOR}
+
+ENV RAILS_SERVE_STATIC_FILES=${RAILS_SERVE_STATIC_FILES}
+ENV RUBY_YJIT_ENABLE=${RUBY_YJIT_ENABLE}
+
+ENV BIND="0.0.0.0"
+ENV NODE_ENV="production"
+ENV RAILS_ENV="production"
+ENV PATH="${PATH}:/opt/ruby/bin:/opt/mastodon/bin"
+ENV MALLOC_CONF="narenas:2,background_thread:true,thp:never,dirty_decay_ms:1000,muzzy_decay_ms:0"
+
+RUN groupadd -g ${GID} mastodon && \
+    useradd -l -u "${UID}" -g "${GID}" -m -d /opt/mastodon mastodon && \
+    ln -s /opt/mastodon /mastodon
+
+WORKDIR /opt/mastodon
 
 # Set timezone to EST/EDT, update installed packages,
 # setup NodeSource for NodeJS, install all required packages,
 # and add the 'mastodon' user.
-RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && \
+RUN echo "Etc/UTC" > /etc/localtime && \
     apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y curl wget gnupg apt-transport-https lsb-release ca-certificates git && \
+    apt-get dist-upgrade -y && \
+    apt-get install -y curl gnupg apt-transport-https lsb-release ca-certificates git && \
     mkdir -p /etc/apt/keyrings && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
-    apt-get install -y \
-    bash \
-    imagemagick \
-    ffmpeg \
-    libpq-dev \
-    libxml2-dev \
-    libxslt1-dev \
-    file git-core \
-    g++ \
-    libprotobuf-dev \
-    protobuf-compiler \
-    pkg-config \
-    nodejs \
-    gcc \
-    autoconf \
-    bison \
-    build-essential \
-    libssl-dev \
-    libyaml-dev \
-    libreadline6-dev \
-    zlib1g-dev \
-    libncurses5-dev \
-    libffi-dev \
-    libgdbm-dev \
-    libidn11-dev \
-    libicu-dev \
-    libjemalloc-dev \
-    tini && \
+    apt-get install -y --no-install-recommends \
+        ffmpeg \
+        file \
+        imagemagick \
+        libjemalloc2 \
+        patchelf \
+        procps \
+        tini \
+        tzdata \
+        wget \
+        g++ \
+        gcc \
+        git \
+        libgdbm-dev \
+        libgmp-dev \
+        libicu-dev \
+        libidn-dev \
+        libpq-dev \
+        libssl-dev \
+        make \
+        shared-mime-info \
+        zlib1g-dev \
+        libssl3 \
+        libpq5 \
+        libicu72 \
+        libidn12 \
+        libreadline8 \
+        libyaml-0-2 && \
+    patchelf --add-needed libjemalloc.so.2 /usr/local/bin/ruby && \
+    apt-get purge -y patchelf && \
     apt-get autoremove -y && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    adduser --disabled-login mastodon
+    rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
+FROM --platform=${TARGETPLATFORM} ruby as build
 
-WORKDIR /mastodon
+COPY --from=node /usr/local/bin /usr/local/bin
+COPY --from=node /usr/local/lib /usr/local/lib
 
-RUN corepack enable && \
+WORKDIR /opt/mastodon
+
+RUN rm .profile && \
+    git config --global --add safe.directory /opt/mastodon && \
+    git config --global init.defaultBranch main && \
+    git init && \
+    git remote add origin https://github.com/glitch-soc/mastodon.git && \
+    git pull origin main
+
+RUN rm /usr/local/bin/yarn* ; \
+    corepack enable && \
     corepack prepare --activate
 
-RUN chown -R mastodon:mastodon /mastodon
+FROM --platform=${TARGETPLATFORM} build as bundler
 
-FROM os-base AS ruby-base
+WORKDIR /opt/mastodon
 
-ARG TARGETPLATFORM
+RUN bundle config set --global frozen "true" && \
+    bundle config set --global cache_all "false" && \
+    bundle config set --local without "development test" && \
+    bundle config set silence_root_warning "true" && \
+    bundle install -j"$(nproc)"
 
-# Switch to the 'mastodon' user and set up its environment.
-USER mastodon
-SHELL ["/bin/bash", "-lc"]
-ENV RUBY_INSTALL_VERSION=3.3.1
-ENV PATH="/home/mastodon/.rbenv/bin:/home/mastodon/.rbenv/versions/${RUBY_INSTALL_VERSION}/bin:$PATH"
+FROM --platform=${TARGETPLATFORM} build as yarn
 
-COPY --chown=mastodon:mastodon ./scripts/compileRuby.sh /tmp/compileRuby.sh
+WORKDIR /opt/mastodon
 
-RUN chmod +x /tmp/compileRuby.sh && \
-    /bin/bash /tmp/compileRuby.sh && \
-    rm -f /tmp/compileRuby.sh
+RUN yarn workspaces focus --production @mastodon/mastodon
 
-FROM ruby-base AS ruby-final
-ARG TARGETPLATFORM
+FROM --platform=${TARGETPLATFORM} build as precompiler
 
-USER mastodon
+COPY --from=yarn /opt/mastodon /opt/mastodon/
+COPY --from=bundler /opt/mastodon /opt/mastodon/
+COPY --from=bundler /usr/local/bundle/ /usr/local/bundle/
 
-COPY --from=ruby-base /home/mastodon/.rbenv/bin /home/mastodon/.rbenv/bin
-COPY --from=ruby-base /home/mastodon/.rbenv/versions/$RUBY_INSTALL_VERSION/bin /home/mastodon/.rbenv/versions/$RUBY_INSTALL_VERSION/bin
-
-FROM ruby-final AS mastodon-build
-ARG TARGETPLATFORM
-ARG BUILD_SEED
-
-USER mastodon
-
-# Set the working directory to '/mastodon' and clone the Mastodon Glitch repository.
-WORKDIR /mastodon
-#RUN git clone https://github.com/glitch-soc/mastodon.git /mastodon
-
-RUN git clone --branch "main" https://github.com/ronilaukkarinen/mastodon-bird-ui.git /tmp/mastodon-bird-ui
-
-COPY --chown=mastodon:mastodon ./patches/mastodon-bird-ui/ /tmp/mastodon-bird-ui-patches/
-#COPY --chown=mastodon:mastodon ./patches/glitch-soc/ /tmp/glitch-soc-patches/
-
-WORKDIR /tmp/mastodon-bird-ui
-
-RUN git config user.name "ContainerBuild" && \
-    git config user.email "build@localhost" && \
-    git am /tmp/mastodon-bird-ui-patches/0001-Add-modifications-for-OCW.Social.patch
-
-WORKDIR /mastodon
-
-RUN mkdir /mastodon/app/javascript/styles/elephant && \
-    cp /tmp/mastodon-bird-ui/layout-multiple-columns.css /mastodon/app/javascript/styles/elephant/layout-multiple-columns.scss && \
-    cp /tmp/mastodon-bird-ui/layout-single-column.css /mastodon/app/javascript/styles/elephant/layout-single-column.scss && \
-    rm -rf /tmp/mastodon-bird-ui && \
-    rm -rf /tmp/mastodon-bird-ui-patches
-
-#RUN git config user.name "ContainerBuild" && \
-#    git config user.email "build@localhost" && \
-#    git am /tmp/glitch-soc-patches/0001-Add-OCW-edition-flavour-files.patch && \
-#    git am /tmp/glitch-soc-patches/0002-Attempting-to-fix-flavour.patch && \
-#    git am /tmp/glitch-soc-patches/0003-Fix-regression-with-sign-in-state.patch && \
-#    git am /tmp/glitch-soc-patches/0004-Fix-for-recent-changes-2024-01-16.patch && \
-#    rm -rf /tmp/glitch-soc-patches
-
-# Copy Bird UI theme files to /mastodon/app/javascript/styles.
-COPY ./themes/styles/elephant.scss /mastodon/app/javascript/styles/elephant.scss
-COPY ./themes/styles/elephant-light.scss /mastodon/app/javascript/styles/elephant-light.scss
-COPY ./themes/styles/elephant-contrast.scss /mastodon/app/javascript/styles/elephant-contrast.scss
-
-# Copy Bird UI theme files to /mastodon/app/javascript/skins/vanilla.
-COPY ./themes/vanilla/elephant/ /mastodon/app/javascript/skins/vanilla/elephant/
-COPY ./themes/vanilla/elephant-light/ /mastodon/app/javascript/skins/vanilla/elephant-light/
-COPY ./themes/vanilla/elephant-contrast/ /mastodon/app/javascript/skins/vanilla/elephant-contrast/
-
-# Install the required gems and JavaScript packages.
-RUN bundle config deployment "true" && \
-    bundle config without "development test" && \
-    bundle install -j$(getconf _NPROCESSORS_ONLN)
-
-RUN yarn workspaces focus --production @mastodon/mastodon && \
-    yarn install --immutable
-
-# Set the necessary environment variables for precompiling assets.
-ENV RAILS_ENV="production" \
-    NODE_ENV="production" \
-    RAILS_SERVE_STATIC_FILES="true" \
-    BIND="0.0.0.0"
-
-# Precompile the assets.
 RUN ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=precompile_placeholder \
     ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=precompile_placeholder \
     ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=precompile_placeholder \
     OTP_SECRET=precompile_placeholder \
     SECRET_KEY_BASE=precompile_placeholder \
-    bundle exec rails assets:precompile
+    bundle exec rails assets:precompile && \
+    rm -rf /opt/mastodon/tmp
 
-RUN yarn cache clean
+FROM --platform=${TARGETPLATFORM} ruby as mastodon
 
-RUN rm -rf /mastodon/.git
+WORKDIR /opt/mastodon
 
-FROM ruby-final AS mastodon-app
-ARG TARGETPLATFORM
+RUN rm .profile && \
+    git config --global --add safe.directory /opt/mastodon && \
+    git config --global init.defaultBranch main && \
+    git init && \
+    git remote add origin https://github.com/glitch-soc/mastodon.git && \
+    git pull origin main && \
+    rm -rf /opt/mastodon/.git && \
+    mkdir -p /opt/mastodon/public/system && \
+    chown mastodon:mastodon /opt/mastodon/public/system && \
+    mkdir -p /opt/mastodon/tmp && \
+    chown -R mastodon:mastodon /opt/mastodon/tmp
+
+WORKDIR /opt/mastodon
+
+COPY --from=precompiler /opt/mastodon/public/packs /opt/mastodon/public/packs
+COPY --from=precompiler /opt/mastodon/public/assets /opt/mastodon/public/assets
+COPY --from=bundler /usr/local/bundle/ /usr/local/bundle/
+
+RUN bundle exec bootsnap precompile --gemfile app/ lib/
 
 USER mastodon
-
-WORKDIR /mastodon
-
-COPY --chown=mastodon:mastodon --from=mastodon-build /mastodon /mastodon
-
-LABEL org.opencontainers.image.source=https://github.com/ocw-social/ocw-social-mastodon
-LABEL org.opencontainers.image.description="Container image for the OCW Social Mastodon server."
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
 EXPOSE 3000 4000
+ENTRYPOINT ["/usr/bin/tini", "--"]
