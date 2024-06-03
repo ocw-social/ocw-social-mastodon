@@ -85,9 +85,11 @@ jobs:
           retention-days: 1
 
   merge:
+    name: Merge digests and push manifest
     runs-on: ubuntu-latest
     needs:
       - build
+      
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
