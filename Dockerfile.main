@@ -94,6 +94,13 @@ RUN rm .profile && \
     git remote add origin https://github.com/glitch-soc/mastodon.git && \
     git pull origin main
 
+# Apply a fix for iOS padding when using Mastodon as a PWA.
+COPY ./patches/mastodon/fix-ios-pwa.patch /tmp/fix-ios-pwa.patch
+RUN git config user.name "ContainerBuild" ; \
+    git config user.email "build@localhost" ; \
+    git am /tmp/fix-ios-pwa.patch; \
+    rm /tmp/fix-ios-pwa.patch
+
 RUN rm /usr/local/bin/yarn* ; \
     corepack enable && \
     corepack prepare --activate

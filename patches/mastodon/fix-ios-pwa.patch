@@ -1,0 +1,53 @@
+From f931ca313510db8e307d0d882aa4b4ebc2146310 Mon Sep 17 00:00:00 2001
+From: Timothy Small <smalls.online@icloud.com>
+Date: Thu, 6 Jun 2024 00:27:00 -0400
+Subject: [PATCH] Apply fixes for safe-area padding
+
+- Include 'viewport-fit=cover' in the viewport meta tag.
+- Add bottom padding using the 'safe-area-inset-bottom' CSS variable available to the Safari browser.
+---
+ app/javascript/flavours/glitch/styles/basics.scss | 1 +
+ app/javascript/styles/mastodon/basics.scss        | 1 +
+ app/views/layouts/application.html.haml           | 2 +-
+ 3 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/app/javascript/flavours/glitch/styles/basics.scss b/app/javascript/flavours/glitch/styles/basics.scss
+index 5f9708a8a..e51302f94 100644
+--- a/app/javascript/flavours/glitch/styles/basics.scss
++++ b/app/javascript/flavours/glitch/styles/basics.scss
+@@ -48,6 +48,7 @@ body {
+ 
+   &.app-body {
+     padding: 0;
++    padding-bottom: env(safe-area-inset-bottom, 0);
+ 
+     &.layout-single-column {
+       height: auto;
+diff --git a/app/javascript/styles/mastodon/basics.scss b/app/javascript/styles/mastodon/basics.scss
+index 2e7d5e5e9..69de58ebf 100644
+--- a/app/javascript/styles/mastodon/basics.scss
++++ b/app/javascript/styles/mastodon/basics.scss
+@@ -48,6 +48,7 @@ body {
+ 
+   &.app-body {
+     padding: 0;
++    padding-bottom: env(safe-area-inset-bottom, 0);
+ 
+     &.layout-single-column {
+       height: auto;
+diff --git a/app/views/layouts/application.html.haml b/app/views/layouts/application.html.haml
+index 3a4335622..f669b8872 100755
+--- a/app/views/layouts/application.html.haml
++++ b/app/views/layouts/application.html.haml
+@@ -2,7 +2,7 @@
+ %html{ lang: I18n.locale }
+   %head
+     %meta{ charset: 'utf-8' }/
+-    %meta{ name: 'viewport', content: 'width=device-width, initial-scale=1' }/
++    %meta{ name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }/
+ 
+     - if cdn_host?
+       %link{ rel: 'dns-prefetch', href: cdn_host }/
+-- 
+2.45.2
+
