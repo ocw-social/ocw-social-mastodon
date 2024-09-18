@@ -8,8 +8,8 @@ ARG NODE_MAJOR="20"
 # Debian image to use for base image.
 ARG DEBIAN_VERSION="bookworm"
 
-FROM --platform=${TARGETPLATFORM} docker.io/node:${NODE_MAJOR}-${DEBIAN_VERSION}-slim as node
-FROM --platform=${TARGETPLATFORM} docker.io/ruby:${RUBY_VERSION}-slim-${DEBIAN_VERSION} as ruby
+FROM --platform=${TARGETPLATFORM} docker.io/node:${NODE_MAJOR}-${DEBIAN_VERSION}-slim AS node
+FROM --platform=${TARGETPLATFORM} docker.io/ruby:${RUBY_VERSION}-slim-${DEBIAN_VERSION} AS ruby
 
 ARG RAILS_SERVE_STATIC_FILES="true"
 ARG RUBY_YJIT_ENABLE="1"
@@ -104,7 +104,7 @@ RUN echo "Etc/UTC" > /etc/localtime && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-FROM --platform=${TARGETPLATFORM} ruby as build
+FROM --platform=${TARGETPLATFORM} ruby AS build
 
 COPY --from=node /usr/local/bin /usr/local/bin
 COPY --from=node /usr/local/lib /usr/local/lib
@@ -131,7 +131,7 @@ RUN rm /usr/local/bin/yarn* ; \
     corepack prepare --activate
 
 # Build libvips
-FROM --platform=${TARGETPLATFORM} build as libvips-build
+FROM --platform=${TARGETPLATFORM} build AS libvips-build
 
 ARG VIPS_VERSION=8.15.3
 ARG VIPS_URL=https://github.com/libvips/libvips/releases/download
@@ -155,7 +155,7 @@ RUN meson setup build \
     ninja install
 
 # Build ffmpeg
-FROM --platform=${TARGETPLATFORM} build as ffmpeg-build
+FROM --platform=${TARGETPLATFORM} build AS ffmpeg-build
 
 ARG FFMPEG_VERSION=7.0.2
 ARG FFMPEG_URL=https://ffmpeg.org/releases
@@ -193,7 +193,7 @@ RUN ./configure \
     make -j$(nproc); \
     make install
 
-FROM --platform=${TARGETPLATFORM} build as bundler
+FROM --platform=${TARGETPLATFORM} build AS bundler
 
 WORKDIR /opt/mastodon
 
@@ -203,13 +203,13 @@ RUN bundle config set --global frozen "true" && \
     bundle config set silence_root_warning "true" && \
     bundle install -j"$(nproc)"
 
-FROM --platform=${TARGETPLATFORM} build as yarn
+FROM --platform=${TARGETPLATFORM} build AS yarn
 
 WORKDIR /opt/mastodon
 
 RUN yarn workspaces focus --production @mastodon/mastodon
 
-FROM --platform=${TARGETPLATFORM} build as precompiler
+FROM --platform=${TARGETPLATFORM} build AS precompiler
 
 COPY --from=yarn /opt/mastodon /opt/mastodon/
 COPY --from=bundler /opt/mastodon /opt/mastodon/
@@ -222,7 +222,7 @@ RUN ldconfig; \
     bundle exec rails assets:precompile && \
     rm -rf /opt/mastodon/tmp
 
-FROM --platform=${TARGETPLATFORM} ruby as mastodon
+FROM --platform=${TARGETPLATFORM} ruby AS mastodon
 
 WORKDIR /opt/mastodon
 
