@@ -60,6 +60,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
             type=sha,suffix=-{{date 'YYYYMMDD-hhmmss' tz='UTC'}}
+            type=ref,event=branch
 
       - name: Build and push container image to registry
         id: build
