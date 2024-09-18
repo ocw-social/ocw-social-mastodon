@@ -6,7 +6,7 @@ ARG NODE_MAJOR="20"
 # Debian image to use for base image.
 ARG DEBIAN_VERSION="bookworm"
 
-FROM --platform=${TARGETPLATFORM} docker.io/node:${NODE_MAJOR}-${DEBIAN_VERSION}-slim as streaming
+FROM --platform=${TARGETPLATFORM} docker.io/node:${NODE_MAJOR}-${DEBIAN_VERSION}-slim AS streaming
 
 ARG UID="991"
 ARG GID="991"
