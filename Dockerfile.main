@@ -73,8 +73,6 @@ RUN echo "Etc/UTC" > /etc/localtime && \
         pkg-config \
         shared-mime-info \
         xz-utils \
-    # ImageMagick components (Temporary as a fallback)
-        imagemagick \
     # libvips components
         libcgif-dev \
         libexif-dev \
