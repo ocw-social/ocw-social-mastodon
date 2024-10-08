@@ -244,6 +244,8 @@ RUN rm .profile && \
 
 WORKDIR /opt/mastodon
 
+COPY --from=build /opt/mastodon/app/javascript/styles /opt/mastodon/app/javascript/styles
+COPY --from=build /opt/mastodon/app/javascript/skins/vanilla /opt/mastodon/app/javascript/skins/vanilla
 COPY --from=precompiler /opt/mastodon/public/packs /opt/mastodon/public/packs
 COPY --from=precompiler /opt/mastodon/public/assets /opt/mastodon/public/assets
 COPY --from=bundler /usr/local/bundle/ /usr/local/bundle/
