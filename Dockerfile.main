@@ -224,20 +224,6 @@ FROM --platform=${TARGETPLATFORM} ruby AS mastodon
 
 WORKDIR /opt/mastodon
 
-RUN rm .profile && \
-    git config --global --add safe.directory /opt/mastodon && \
-    git config --global init.defaultBranch main && \
-    git init && \
-    git remote add origin https://github.com/glitch-soc/mastodon.git && \
-    git pull origin main && \
-    rm -rf /opt/mastodon/.git && \
-    mkdir -p /opt/mastodon/public/system && \
-    chown mastodon:mastodon /opt/mastodon/public/system && \
-    mkdir -p /opt/mastodon/tmp && \
-    chown -R mastodon:mastodon /opt/mastodon/tmp
-
-WORKDIR /opt/mastodon
-
 COPY --from=precompiler /opt/mastodon/public/packs /opt/mastodon/public/packs
 COPY --from=precompiler /opt/mastodon/public/assets /opt/mastodon/public/assets
 COPY --from=bundler /usr/local/bundle/ /usr/local/bundle/
