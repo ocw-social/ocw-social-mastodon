@@ -137,7 +137,7 @@ RUN rm /usr/local/bin/yarn* ; \
 # Build libvips
 FROM --platform=${TARGETPLATFORM} build AS libvips-build
 
-ARG VIPS_VERSION=8.15.3
+ARG VIPS_VERSION=8.16.0
 ARG VIPS_URL=https://github.com/libvips/libvips/releases/download
 
 WORKDIR /usr/local/libvips/src
