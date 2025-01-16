@@ -67,7 +67,7 @@ RUN echo "Etc/UTC" > /etc/localtime && \
         libidn-dev \
         libpq-dev \
         libssl-dev \
-        libyaml-0-2 \
+        libyaml-dev \
         libtool \
         meson \
         nasm \
