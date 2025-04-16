@@ -133,9 +133,9 @@ RUN git clone https://github.com/nileane/TangerineUI-for-Mastodon.git /tmp/tange
 
 # Add Mastodon Modern theme
 COPY ./themes/flavours/glitch/styles/modern /opt/mastodon/app/javascript/flavours/glitch/styles/modern
-COPY ./themes/flavours/glitch/styles/modern-contrast.css /opt/mastodon/app/javascript/flavours/glitch/styles/modern-contrast.scss
-COPY ./themes/flavours/glitch/styles/modern-dark.css /opt/mastodon/app/javascript/flavours/glitch/styles/modern-dark.scss
-COPY ./themes/flavours/glitch/styles/modern-light.css /opt/mastodon/app/javascript/flavours/glitch/styles/modern-light.scss
+COPY ./themes/flavours/glitch/styles/modern-contrast.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-contrast.scss
+COPY ./themes/flavours/glitch/styles/modern-dark.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-dark.scss
+COPY ./themes/flavours/glitch/styles/modern-light.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-light.scss
 COPY ./themes/skins/glitch/modern-contrast /opt/mastodon/app/javascript/skins/glitch/modern-contrast
 COPY ./themes/skins/glitch/modern-dark /opt/mastodon/app/javascript/skins/glitch/modern-dark
 COPY ./themes/skins/glitch/modern-light /opt/mastodon/app/javascript/skins/glitch/modern-light
