@@ -254,6 +254,8 @@ RUN rm .profile && \
 
 WORKDIR /opt/mastodon
 
+COPY --from=build /opt/mastodon/app/javascript/flavours/glitch/styles /opt/mastodon/app/javascript/flavours/glitch/styles
+COPY --from=build /opt/mastodon/app/javascript/skins/glitch /opt/mastodon/app/javascript/skins/glitch
 COPY --from=build /opt/mastodon/app/javascript/styles /opt/mastodon/app/javascript/styles
 COPY --from=build /opt/mastodon/app/javascript/skins/vanilla /opt/mastodon/app/javascript/skins/vanilla
 COPY --from=precompiler /opt/mastodon/public/packs /opt/mastodon/public/packs
