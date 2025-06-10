@@ -5,7 +5,10 @@
       "~/{fonts,icons,images}/**/*",
       "~/styles/entrypoints/*.scss",
       "~/flavours/*/{fonts,icons,images}/**/*",
-      "~/skins/**/*"
+      "~/flavours/styles/modern-contrast.scss",
+      "~/flavours/styles/modern-dark.scss",
+      "~/flavours/styles/modern-light.scss",
+      "~/skins/**/*.scss"
     ],
     "watchAdditionalPaths": []
   },
