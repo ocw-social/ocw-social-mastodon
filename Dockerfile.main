@@ -125,6 +125,9 @@ RUN git config user.name "ContainerBuild" ; \
     git am /tmp/fix-ios-pwa.patch; \
     rm /tmp/fix-ios-pwa.patch
 
+# Add custom vite.json config
+COPY ./config/vite.json /opt/mastodon/config/vite.json
+
 # Add Tangerine UI theme
 RUN git clone https://github.com/nileane/TangerineUI-for-Mastodon.git /tmp/tangerine-ui && \
     cp -r /tmp/tangerine-ui/mastodon/app/javascript/styles/* /opt/mastodon/app/javascript/styles && \
