@@ -129,10 +129,11 @@ RUN git config user.name "ContainerBuild" ; \
 COPY ./config/vite.json /opt/mastodon/config/vite.json
 
 # Add Tangerine UI theme
-RUN git clone https://github.com/nileane/TangerineUI-for-Mastodon.git /tmp/tangerine-ui && \
-    cp -r /tmp/tangerine-ui/mastodon/app/javascript/styles/* /opt/mastodon/app/javascript/styles && \
-    cp -r /tmp/tangerine-ui/mastodon/app/javascript/skins/vanilla/* /opt/mastodon/app/javascript/skins/vanilla && \
-    rm -rf /tmp/tangerine-ui
+# -- Note: This has been disabled on 2025-06-10. It's causing build failures at the moment. :(
+# RUN git clone --branch next https://github.com/nileane/TangerineUI-for-Mastodon.git /tmp/tangerine-ui && \
+#     cp -r /tmp/tangerine-ui/mastodon/app/javascript/styles/* /opt/mastodon/app/javascript/styles && \
+#     cp -r /tmp/tangerine-ui/mastodon/app/javascript/skins/vanilla/* /opt/mastodon/app/javascript/skins/vanilla && \
+#     rm -rf /tmp/tangerine-ui
 
 # Add Mastodon Modern theme
 COPY ./themes/flavours/glitch/styles/modern /opt/mastodon/app/javascript/flavours/glitch/styles/modern
