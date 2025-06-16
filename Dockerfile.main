@@ -118,31 +118,34 @@ RUN rm .profile && \
     git remote add origin https://github.com/glitch-soc/mastodon.git && \
     git pull origin main
 
+# NOTE:
+# As of 2025-06-16, all custom modifications have been disabled until more time
+# can be spent on fixing the changes made to upstream Mastodon.
+
 # Apply a fix for iOS padding when using Mastodon as a PWA.
-COPY ./patches/mastodon/fix-ios-pwa.patch /tmp/fix-ios-pwa.patch
-RUN git config user.name "ContainerBuild" ; \
-    git config user.email "build@localhost" ; \
-    git am /tmp/fix-ios-pwa.patch; \
-    rm /tmp/fix-ios-pwa.patch
+# COPY ./patches/mastodon/fix-ios-pwa.patch /tmp/fix-ios-pwa.patch
+# RUN git config user.name "ContainerBuild" ; \
+#     git config user.email "build@localhost" ; \
+#     git am /tmp/fix-ios-pwa.patch; \
+#     rm /tmp/fix-ios-pwa.patch
 
 # Add custom vite.json config
-COPY ./config/vite.json /opt/mastodon/config/vite.json
+# COPY ./config/vite.json /opt/mastodon/config/vite.json
 
 # Add Tangerine UI theme
-# -- Note: This has been disabled on 2025-06-10. It's causing build failures at the moment. :(
 # RUN git clone --branch next https://github.com/nileane/TangerineUI-for-Mastodon.git /tmp/tangerine-ui && \
 #     cp -r /tmp/tangerine-ui/mastodon/app/javascript/styles/* /opt/mastodon/app/javascript/styles && \
 #     cp -r /tmp/tangerine-ui/mastodon/app/javascript/skins/vanilla/* /opt/mastodon/app/javascript/skins/vanilla && \
 #     rm -rf /tmp/tangerine-ui
 
 # Add Mastodon Modern theme
-COPY ./themes/flavours/glitch/styles/modern /opt/mastodon/app/javascript/flavours/glitch/styles/modern
-COPY ./themes/flavours/glitch/styles/modern-contrast.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-contrast.scss
-COPY ./themes/flavours/glitch/styles/modern-dark.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-dark.scss
-COPY ./themes/flavours/glitch/styles/modern-light.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-light.scss
-COPY ./themes/skins/glitch/modern-contrast /opt/mastodon/app/javascript/skins/glitch/modern-contrast
-COPY ./themes/skins/glitch/modern-dark /opt/mastodon/app/javascript/skins/glitch/modern-dark
-COPY ./themes/skins/glitch/modern-light /opt/mastodon/app/javascript/skins/glitch/modern-light
+# COPY ./themes/flavours/glitch/styles/modern /opt/mastodon/app/javascript/flavours/glitch/styles/modern
+# COPY ./themes/flavours/glitch/styles/modern-contrast.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-contrast.scss
+# COPY ./themes/flavours/glitch/styles/modern-dark.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-dark.scss
+# COPY ./themes/flavours/glitch/styles/modern-light.scss /opt/mastodon/app/javascript/flavours/glitch/styles/modern-light.scss
+# COPY ./themes/skins/glitch/modern-contrast /opt/mastodon/app/javascript/skins/glitch/modern-contrast
+# COPY ./themes/skins/glitch/modern-dark /opt/mastodon/app/javascript/skins/glitch/modern-dark
+# COPY ./themes/skins/glitch/modern-light /opt/mastodon/app/javascript/skins/glitch/modern-light
 
 RUN rm /usr/local/bin/yarn* ; \
     corepack enable && \
