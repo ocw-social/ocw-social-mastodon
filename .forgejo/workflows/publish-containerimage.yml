@@ -76,7 +76,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: https://git.smalls.online/smallsonline-actions/upload-artifact-temp@v4
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
           path: /tmp/digests/*
@@ -91,7 +91,7 @@ jobs:
 
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: https://git.smalls.online/smallsonline-actions/download-artifact-temp@v4
         with:
           path: /tmp/digests
           pattern: digests-*
