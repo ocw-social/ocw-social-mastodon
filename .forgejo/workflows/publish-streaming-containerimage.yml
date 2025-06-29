@@ -1,0 +1,74 @@
+name: Publish / Mastodon streaming container images
+
+on:
+  # Run every Monday at 12:00 EDT (16:00 UTC)
+  schedule:
+    - cron: "0 16 * * MON"
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      isDev:
+        description: "Is dev?"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  actions: write
+  packages: write
+
+env:
+  IMAGE_NAME: git.smalls.online/${{ github.repository_owner }}/${{ inputs.isDev == true && 'ocw-social-mastodon-streaming-dev' || 'ocw-social-mastodon-streaming' }}
+
+jobs:
+  build:
+    name: Build and push container image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout: Latest commit"
+        uses: https://git.smalls.online/smallsonline-actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup QEMU
+        uses: https://git.smalls.online/smallsonline-actions/docker-setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: https://git.smalls.online/smallsonline-actions/docker-setup-buildx-action@v3
+
+      #- name: Log into Azure container registry
+      #  uses: docker/login-action@v3
+      #  with:
+      #    registry: smallsonlinemstdncontainers.azurecr.io
+      #    username: ${{ secrets.REGISTRY_USERNAME }}
+      #    password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Log into container registry
+        uses: https://git.smalls.online/smallsonline-actions/docker-login-action@v3
+        with:
+          registry: git.smalls.online
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: Set metadata
+        id: meta
+        uses: https://git.smalls.online/smallsonline-actions/docker-metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
+            type=sha,suffix=-{{date 'YYYYMMDD-hhmmss' tz='UTC'}}
+            type=ref,event=branch
+
+      - name: Build and push container image to registry
+        id: build
+        uses: https://git.smalls.online/smallsonline-actions/docker-build-push-action@v6
+        with:
+          context: ./
+          file: ./Dockerfile.streaming
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+

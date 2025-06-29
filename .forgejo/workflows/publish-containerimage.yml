@@ -1,0 +1,129 @@
+name: Publish / Mastodon container images
+
+on:
+  # Run every Monday at 12:00 EDT (16:00 UTC)
+  schedule:
+    - cron: "0 16 * * MON"
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      isDev:
+        description: "Is dev?"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  actions: write
+  packages: write
+
+env:
+  IMAGE_NAME: git.smalls.online/${{ github.repository_owner }}/${{ inputs.isDev == true && 'ocw-social-mastodon-dev' || 'ocw-social-mastodon' }}
+
+jobs:
+  build:
+    name: Build and push container image
+    runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-latest-arm64' || 'ubuntu-latest' }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - "linux/amd64"
+          - "linux/arm64"
+
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: "Checkout: Latest commit"
+        uses: https://git.smalls.online/smallsonline-actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Docker Buildx
+        uses: https://git.smalls.online/smallsonline-actions/docker-setup-buildx-action@v3
+
+      #- name: Log into Azure container registry
+      #  uses: docker/login-action@v3
+      #  with:
+      #    registry: smallsonlinemstdncontainers.azurecr.io
+      #    username: ${{ secrets.REGISTRY_USERNAME }}
+      #    password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Log into container registry
+        uses: https://git.smalls.online/smallsonline-actions/docker-login-action@v3
+        with:
+          registry: git.smalls.online
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: Build and push container image to registry
+        id: build
+        uses: https://git.smalls.online/smallsonline-actions/docker-build-push-action@v6
+        with:
+          context: ./
+          file: ./Dockerfile.main
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: Merge digests and push manifest
+    runs-on: ubuntu-latest
+    needs:
+      - build
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: https://git.smalls.online/smallsonline-actions/docker-setup-buildx-action@v3
+
+      - name: Set metadata
+        id: meta
+        uses: https://git.smalls.online/smallsonline-actions/docker-metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='UTC'}}
+            type=sha,suffix=-{{date 'YYYYMMDD-hhmmss' tz='UTC'}}
+            type=ref,event=branch
+
+      - name: Log into container registry
+        uses: https://git.smalls.online/smallsonline-actions/docker-login-action@v3
+        with:
+          registry: git.smalls.online
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
