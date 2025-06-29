@@ -18,7 +18,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: git.smalls.online/${{ github.repository_owner }}/${{ inputs.isDev == true && 'ocw-social-mastodon-streaming-dev' || 'ocw-social-mastodon-streaming' }}
+  IMAGE_NAME: git.smalls.online/ocw/${{ inputs.isDev == true && 'ocw-social-mastodon-streaming-dev' || 'ocw-social-mastodon-streaming' }}
 
 jobs:
   build:
