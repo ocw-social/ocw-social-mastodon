@@ -2,11 +2,11 @@ ARG TARGETPLATFORM=${TARGETPLATFORM}
 ARG BUILDPLATFORM=${BUILDPLATFORM}
 
 # Ruby image to use for base image.
-ARG RUBY_VERSION="3.4.4"
+ARG RUBY_VERSION="4.0.5"
 # # Node version to use in base image.
-ARG NODE_MAJOR="22"
+ARG NODE_MAJOR="24"
 # Debian image to use for base image.
-ARG DEBIAN_VERSION="bookworm"
+ARG DEBIAN_VERSION="trixie"
 
 FROM docker.io/node:${NODE_MAJOR}-${DEBIAN_VERSION}-slim AS node
 FROM docker.io/ruby:${RUBY_VERSION}-slim-${DEBIAN_VERSION} AS ruby
@@ -154,7 +154,7 @@ RUN rm /usr/local/bin/yarn* ; \
 # Build libvips
 FROM build AS libvips-build
 
-ARG VIPS_VERSION=8.16.0
+ARG VIPS_VERSION=8.18.2
 ARG VIPS_URL=https://github.com/libvips/libvips/releases/download
 
 WORKDIR /usr/local/libvips/src
@@ -178,7 +178,7 @@ RUN meson setup build \
 # Build ffmpeg
 FROM build AS ffmpeg-build
 
-ARG FFMPEG_VERSION=7.1
+ARG FFMPEG_VERSION=8.1.1
 ARG FFMPEG_URL=https://ffmpeg.org/releases
 
 WORKDIR /usr/local/ffmpeg/src
