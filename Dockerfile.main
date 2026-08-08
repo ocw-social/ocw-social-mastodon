@@ -178,7 +178,7 @@ RUN meson setup build \
 # Build ffmpeg
 FROM build AS ffmpeg-build
 
-ARG FFMPEG_VERSION=8.1.1
+ARG FFMPEG_VERSION=8.1.2
 ARG FFMPEG_URL=https://ffmpeg.org/releases
 
 WORKDIR /usr/local/ffmpeg/src
