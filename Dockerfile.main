@@ -2,9 +2,9 @@ ARG TARGETPLATFORM=${TARGETPLATFORM}
 ARG BUILDPLATFORM=${BUILDPLATFORM}
 
 # Ruby image to use for base image.
-ARG RUBY_VERSION="4.0.5"
+ARG RUBY_VERSION="4.0.9"
 # # Node version to use in base image.
-ARG NODE_MAJOR="24"
+ARG NODE_MAJOR="26"
 # Debian image to use for base image.
 ARG DEBIAN_VERSION="trixie"
 
@@ -154,7 +154,7 @@ RUN rm /usr/local/bin/yarn* ; \
 # Build libvips
 FROM build AS libvips-build
 
-ARG VIPS_VERSION=8.18.2
+ARG VIPS_VERSION=8.18.7
 ARG VIPS_URL=https://github.com/libvips/libvips/releases/download
 
 WORKDIR /usr/local/libvips/src
@@ -178,7 +178,7 @@ RUN meson setup build \
 # Build ffmpeg
 FROM build AS ffmpeg-build
 
-ARG FFMPEG_VERSION=8.1.2
+ARG FFMPEG_VERSION=8.1.3
 ARG FFMPEG_URL=https://ffmpeg.org/releases
 
 WORKDIR /usr/local/ffmpeg/src
